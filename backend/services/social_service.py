@@ -11,8 +11,8 @@ Modification History:
 
 import requests  # HTTP 호출
 from sqlalchemy.orm import Session  # DB 세션
-from app.core.config import settings  # 설정
-from app.models.user import User  # 유저 모델
+from backend.core.config import settings  # 설정
+from backend.models.user import User  # 유저 모델
 
 def _require(value: str, name: str) -> str:
     if not value:

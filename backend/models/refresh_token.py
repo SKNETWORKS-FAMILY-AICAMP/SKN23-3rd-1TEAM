@@ -11,7 +11,7 @@ Modification History:
 from sqlalchemy import String, Integer, DateTime, ForeignKey  # 타입
 from sqlalchemy.orm import Mapped, mapped_column  # 매핑
 from datetime import datetime  # 시간
-from app.db.base import Base  # 베이스
+from backend.db.base import Base  # 베이스
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"  # 테이블명

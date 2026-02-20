@@ -10,13 +10,13 @@ Modification History:
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response  # fastapi
 from sqlalchemy.orm import Session  # 세션
-from app.db.session import get_db  # DB
-from app.schemas.auth_schema import SignupRequest, LoginRequest, TokenResponse, MeResponse  # 스키마
-from app.services import auth_service  # 서비스
-from app.core.config import settings  # 설정
-from app.core.security import new_csrf_token  # CSRF
-from app.models.user import User  # 타입힌트
-from app.core.rate_limit import check_block, record_failure, reset_attempts
+from backend.db.session import get_db  # DB
+from backend.schemas.auth_schema import SignupRequest, LoginRequest, TokenResponse, MeResponse  # 스키마
+from backend.services import auth_service  # 서비스
+from backend.core.config import settings  # 설정
+from backend.core.security import new_csrf_token  # CSRF
+from backend.models.user import User  # 타입힌트
+from backend.core.rate_limit import check_block, record_failure, reset_attempts
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])  # 라우터
 
