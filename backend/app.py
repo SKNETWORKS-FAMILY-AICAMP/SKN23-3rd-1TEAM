@@ -10,17 +10,16 @@ Modification History:
 
 from fastapi import FastAPI  # fastapi
 from fastapi.middleware.cors import CORSMiddleware  # cors
-from app.routers import infer, auth  # routers
-from app.db.session import engine  # engine
-from app.db.base import Base  # base
-from app.models import user, refresh_token  # 모델 등록용(임포트)
-from app.routers import infer, auth, social_auth 
+from backend.db.session import engine  # engine
+from backend.db.base import Base  # base
+from backend.models import user, refresh_token  # 모델 등록용(임포트)
+from backend.routers import infer, auth, social_auth 
 
 app = FastAPI()  # 앱
 
 app.add_middleware(  # CORS는 반드시 특정 origin만
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vue 개발 서버 예시
+    allow_origins=["http://localhost:8501","http://localhost:5173"],  # Vue 개발 서버 예시
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],

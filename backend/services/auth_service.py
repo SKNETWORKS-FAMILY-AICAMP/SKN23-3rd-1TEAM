@@ -10,13 +10,13 @@ Modification History:
 
 from sqlalchemy.orm import Session  # 세션
 from datetime import datetime, timezone, timedelta  # 시간
-from app.models.user import User  # 유저
-from app.models.refresh_token import RefreshToken  # 리프레시 저장
-from app.core.security import (
+from backend.models.user import User  # 유저
+from backend.models.refresh_token import RefreshToken  # 리프레시 저장
+from backend.core.security import (
     hash_password, verify_password, new_jti, sha256_hex,
     create_access_token, create_refresh_token, decode_token
 )  # 보안 유틸
-from app.core.config import settings  # 설정
+from backend.core.config import settings  # 설정
 
 def signup(db: Session, username: str, password: str) -> None:
     exists = db.query(User).filter(User.username == username).first()  # 중복 확인

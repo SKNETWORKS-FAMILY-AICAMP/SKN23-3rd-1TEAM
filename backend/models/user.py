@@ -10,7 +10,7 @@ Modification History:
 
 from sqlalchemy import String, Integer  # 컬럼 타입
 from sqlalchemy.orm import Mapped, mapped_column  # 매핑
-from app.db.base import Base  # 베이스
+from backend.db.base import Base  # 베이스
 
 class User(Base):
     __tablename__ = "users"  # 테이블명
