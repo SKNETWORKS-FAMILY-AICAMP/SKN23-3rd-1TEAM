@@ -13,7 +13,7 @@ import secrets  # 랜덤
 from datetime import datetime, timedelta, timezone  # 시간
 from jose import jwt  # JWT
 from passlib.context import CryptContext  # 비번 해시
-from app.core.config import settings  # 설정
+from backend.core.config import settings  # 설정
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")  # Argon2 사용
 

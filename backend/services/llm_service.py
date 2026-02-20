@@ -8,7 +8,7 @@ Modification History:
 - 2026-02-15: 초기 생성
 """
 
-from app.models.loader import model
+from backend.models.loader import model
 
 def generate_text(prompt: str):
     return model(prompt)
