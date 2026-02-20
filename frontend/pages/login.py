@@ -11,7 +11,9 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 KAKAO_CLIENT_ID = os.getenv("KAKAO_CLIENT_ID")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
+
 
 st.set_page_config(page_title="로그인", page_icon="🔐", layout="centered")
 
@@ -287,7 +289,7 @@ try:
             GOOGLE_CLIENT_ID,
             GOOGLE_CLIENT_SECRET,
             scope="openid email profile",
-            redirect_uri=REDIRECT_URI
+            redirect_uri=GOOGLE_REDIRECT_URI
         )
         google_uri, _ = google.create_authorization_url(
             "https://accounts.google.com/o/oauth2/auth"
@@ -302,7 +304,7 @@ try:
         kakao = OAuth2Session(
             KAKAO_CLIENT_ID,
             KAKAO_CLIENT_SECRET,
-            redirect_uri=REDIRECT_URI,
+            redirect_uri=KAKAO_REDIRECT_URI,
             scope="profile_nickname account_email"
         )
         kakao_uri, _ = kakao.create_authorization_url(
@@ -332,7 +334,7 @@ NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID", "YOUR_NAVER_CLIENT_ID")
 # """, unsafe_allow_html=True)
 
 # st.markdown('</div>', unsafe_allow_html=True)
-naver_uri = f"https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={NAVER_CLIENT_ID}&redirect_uri={REDIRECT_URI or ''}&state=naver"
+#naver_uri = f"https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id={NAVER_CLIENT_ID}&redirect_uri={REDIRECT_URI or ''}&state=naver"
 
 st.markdown(f"""
     <a href="{google_uri}" class="social-btn btn-google" target="_self">
@@ -356,28 +358,54 @@ if "code" in query_params:
     code = query_params["code"]
     state = query_params.get("state", "")
 
-    if state == "naver":
-        # 네이버 토큰 처리
-        try:
-            NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
-            token = requests.post(
-                "https://nid.naver.com/oauth2.0/token",
-                data={
-                    "grant_type": "authorization_code",
-                    "client_id": NAVER_CLIENT_ID,
-                    "client_secret": NAVER_CLIENT_SECRET,
-                    "code": code,
-                    "state": state,
-                }
-            ).json()
-            userinfo = requests.get(
-                "https://openapi.naver.com/v1/nid/me",
-                headers={"Authorization": f"Bearer {token['access_token']}"}
-            ).json()
-            st.session_state.user = {"name": userinfo["response"]["name"]}
-            st.switch_page("pages/home.py") # 네이버 로그인 성공시 home.py로 이동
-        except Exception:
-            st.error("네이버 로그인 중 오류가 발생했습니다.")
+    # if state == "naver":
+    #     # 네이버 토큰 처리
+    #     try:
+    #         NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
+    #         token = requests.post(
+    #             "https://nid.naver.com/oauth2.0/token",
+    #             data={
+    #                 "grant_type": "authorization_code",
+    #                 "client_id": NAVER_CLIENT_ID,
+    #                 "client_secret": NAVER_CLIENT_SECRET,
+    #                 "code": code,
+    #                 "state": state,
+    #             }
+    #         ).json()
+    #         userinfo = requests.get(
+    #             "https://openapi.naver.com/v1/nid/me",
+    #             headers={"Authorization": f"Bearer {token['access_token']}"}
+    #         ).json()
+    #         st.session_state.user = {"name": userinfo["response"]["name"]}
+    #         st.switch_page("pages/02_home.py") # 네이버 로그인 성공시 home.py로 이동
+    #     except Exception:
+    #         st.error("네이버 로그인 중 오류가 발생했습니다.")
+    # el
+    if state == "kakao":
+        
+        # 카카오 토큰 교환
+        token = requests.get(
+            "http://localhost:8000/api/auth/kakao/start",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": KAKAO_CLIENT_ID,
+                "client_secret": KAKAO_CLIENT_SECRET,
+                "redirect_uri": KAKAO_REDIRECT_URI,
+                "code": code,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded;charset=utf-8"},
+        ).json()
+        
+        # 카카오 사용자 정보
+        userinfo = requests.get(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {token['access_token']}"},
+        ).json()
+
+        nickname = (userinfo.get("properties") or {}).get("nickname", "사용자")
+        st.session_state.user = {"name": nickname}
+        st.switch_page("pages/home.py")
+
     else:
         # Google 토큰 처리
         try:
@@ -387,7 +415,7 @@ if "code" in query_params:
                     "code": code,
                     "client_id": GOOGLE_CLIENT_ID,
                     "client_secret": GOOGLE_CLIENT_SECRET,
-                    "redirect_uri": REDIRECT_URI,
+                    "redirect_uri": GOOGLE_REDIRECT_URI,
                     "grant_type": "authorization_code",
                 }
             ).json()

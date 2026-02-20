@@ -4,7 +4,6 @@ import time
 from streamlit_webrtc import webrtc_streamer
 
 # --- 페이지 설정 ---
-st.set_page_config(page_title="DeepInterview", page_icon="🎤", layout="wide")
 
 st.markdown("""
 <style>

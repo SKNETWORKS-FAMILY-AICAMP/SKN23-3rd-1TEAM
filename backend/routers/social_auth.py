@@ -30,7 +30,7 @@ def _set_oauth_state_cookie(res: Response, name: str, value: str) -> None:
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
         domain=settings.COOKIE_DOMAIN,
-        path="/api/auth",
+        path="/",
         max_age=300,
     )
 
@@ -65,6 +65,7 @@ def _oauth_popup_html(frontend_redirect_url: str, access_token: str) -> str:
 # Kakao
 @router.get("/kakao/start")
 def kakao_start(res: Response):
+    print(res)
     state = secrets.token_urlsafe(24)
     _set_oauth_state_cookie(res, "kakao_oauth_state", state)
 
