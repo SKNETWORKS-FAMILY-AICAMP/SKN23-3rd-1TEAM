@@ -12,7 +12,7 @@ Modification History:
 import os
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from app.services.rag_service import rag_service  # 👈 사서(RAG) 호출
+from backend.services.rag_service import rag_service  # 👈 사서(RAG) 호출
 
 
 class LLMService:
@@ -81,3 +81,21 @@ class LLMService:
 
 # FastAPI 라우터에서 쉽게 가져다 쓸 수 있도록 객체 생성
 llm_service = LLMService()
+
+
+def generate_text(prompt: str) -> str:
+    """
+    Legacy sync wrapper used by infer router.
+    """
+    user_answer = (prompt or "").strip()
+    if not user_answer:
+        return ""
+
+    response = llm_service.chain.invoke(
+        {
+            "job_role": "Python 백엔드 개발자",
+            "context": "",
+            "user_answer": user_answer,
+        }
+    )
+    return getattr(response, "content", str(response))
