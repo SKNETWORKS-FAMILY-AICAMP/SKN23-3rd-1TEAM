@@ -1,11 +1,14 @@
 # 초기 화면 (로그인창)
 import streamlit as st
+from pathlib import Path
 import os
 from dotenv import load_dotenv
 from authlib.integrations.requests_client import OAuth2Session
 import requests
-
-load_dotenv()
+st.write("env loaded:", os.getenv("KAKAO_REDIRECT_URI"))
+import sys
+st.write("RUNTIME_PY:", sys.executable)
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")

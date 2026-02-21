@@ -1,4 +1,4 @@
-"""
+﻿"""
 File: app.py
 Author: 김지우
 Created: 2026-02-20
@@ -13,18 +13,26 @@ Modification History:
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from authlib.integrations.requests_client import OAuth2Session
-import requests
 
 load_dotenv()
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 KAKAO_CLIENT_ID = os.getenv("KAKAO_CLIENT_ID")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
+KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
 
 st.set_page_config(page_title="로그인", page_icon="🔐", layout="centered")
+
+if "access_token" not in st.session_state:
+    st.session_state.access_token = None
+
+social_token = st.query_params.get("access_token")
+if social_token:
+    st.session_state.access_token = social_token
+    st.query_params.clear()
+    st.switch_page("pages/home.py")
 
 st.markdown("""
 <style>
@@ -291,36 +299,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Google ────────────────────────────────────────────────
-google_uri = "#"
-try:
-    if GOOGLE_CLIENT_ID:
-        google = OAuth2Session(
-            GOOGLE_CLIENT_ID,
-            GOOGLE_CLIENT_SECRET,
-            scope="openid email profile",
-            redirect_uri=REDIRECT_URI
-        )
-        google_uri, _ = google.create_authorization_url(
-            "https://accounts.google.com/o/oauth2/auth"
-        )
-except Exception:
-    pass
+google_uri = "http://localhost:8000/api/auth/google/start"
 
 # ── Kakao ─────────────────────────────────────────────────
-kakao_uri = "#"
-try:
-    if KAKAO_CLIENT_ID:
-        kakao = OAuth2Session(
-            KAKAO_CLIENT_ID,
-            KAKAO_CLIENT_SECRET,
-            redirect_uri=REDIRECT_URI,
-            scope="profile_nickname account_email"
-        )
-        kakao_uri, _ = kakao.create_authorization_url(
-            "https://kauth.kakao.com/oauth/authorize"
-        )
-except Exception:
-    pass
+kakao_uri = "http://localhost:8000/api/auth/kakao/start"
 
 st.markdown(f"""
     <a href="{google_uri}" class="social-btn btn-google" target="_self">
@@ -336,30 +318,3 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-# ── OAuth Callback ─────────────────────────────────────────
-query_params = st.query_params
-
-if "code" in query_params:
-    code = query_params["code"]
-    
-    # Google 토큰 처리 (네이버 관련 로직 삭제)
-    try:
-        token = requests.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "code": code,
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
-                "redirect_uri": REDIRECT_URI,
-                "grant_type": "authorization_code",
-            }
-        ).json()
-        userinfo = requests.get(
-            "https://www.googleapis.com/oauth2/v1/userinfo",
-            headers={"Authorization": f"Bearer {token['access_token']}"}
-        ).json()
-        st.session_state.user = {"name": userinfo.get("name", "사용자")}
-        st.switch_page("pages/home.py") # 구글 로그인 성공시 home.py로 이동
-    except Exception:
-        pass
