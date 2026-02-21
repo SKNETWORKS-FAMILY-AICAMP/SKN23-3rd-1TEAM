@@ -14,7 +14,7 @@ import os
 import pdfplumber
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 class RAGService:
     def __init__(self, persist_dir="./chroma_db"):
