@@ -10,7 +10,7 @@ Modification History:
 
 from sqlalchemy import create_engine  # 엔진
 from sqlalchemy.orm import sessionmaker  # 세션팩토리
-from app.core.config import settings  # 설정
+from backend.core.config import settings  # 설정
 
 connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}  # sqlite 옵션
 engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, future=True)  # DB 엔진

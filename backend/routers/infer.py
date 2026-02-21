@@ -10,11 +10,11 @@ Modification History:
 
 from fastapi import APIRouter, Depends, Request, HTTPException  # fastapi
 from sqlalchemy.orm import Session  # 세션
-from app.db.session import get_db  # db
-from app.schemas.infer_schema import InferRequest, InferResponse  # 스키마
-from app.services.llm_service import generate_text  # 모델 호출
-from app.services import auth_service  # 인증
-from app.models.user import User  # 타입
+from backend.db.session import get_db  # db
+from backend.schemas.infer_schema import InferRequest, InferResponse  # 스키마
+from backend.services.llm_service import generate_text  # 모델 호출
+from backend.services import auth_service  # 인증
+from backend.models.user import User  # 타입
 
 router = APIRouter(prefix="/api", tags=["infer"])  # 라우터
 

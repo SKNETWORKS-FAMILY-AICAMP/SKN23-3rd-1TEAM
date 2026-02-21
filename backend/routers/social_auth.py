@@ -13,12 +13,12 @@ from urllib.parse import urlencode  # 쿼리 생성
 from fastapi import APIRouter, Depends, Request, Response, HTTPException  # FastAPI
 from fastapi.responses import RedirectResponse, HTMLResponse  # 응답
 from sqlalchemy.orm import Session  # DB 세션
-from app.db.session import get_db  # DI
-from app.core.config import settings  # 설정
-from app.core.security import new_csrf_token  # csrf
-from app.routers.auth import set_auth_cookies  # 기존 쿠키 셋팅 함수 재사용
-from app.services import social_service  # 소셜 서비스
-from app.services.auth_service import issue_tokens_for_user_id  # 우리 JWT 발급
+from backend.db.session import get_db  # DI
+from backend.core.config import settings  # 설정
+from backend.core.security import new_csrf_token  # csrf
+from backend.routers.auth import set_auth_cookies  # 기존 쿠키 셋팅 함수 재사용
+from backend.services import social_service  # 소셜 서비스
+from backend.services.auth_service import issue_tokens_for_user_id  # 우리 JWT 발급
 
 router = APIRouter(prefix="/api/auth", tags=["social-auth"])  # 라우터
 
@@ -30,7 +30,7 @@ def _set_oauth_state_cookie(res: Response, name: str, value: str) -> None:
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
         domain=settings.COOKIE_DOMAIN,
-        path="/api/auth",
+        path="/",
         max_age=300,
     )
 
@@ -65,6 +65,7 @@ def _oauth_popup_html(frontend_redirect_url: str, access_token: str) -> str:
 # Kakao
 @router.get("/kakao/start")
 def kakao_start(res: Response):
+    print(res)
     state = secrets.token_urlsafe(24)
     _set_oauth_state_cookie(res, "kakao_oauth_state", state)
 
