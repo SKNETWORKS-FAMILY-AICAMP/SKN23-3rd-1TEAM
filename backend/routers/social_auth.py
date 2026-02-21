@@ -11,7 +11,7 @@ Modification History:
 import secrets  # state 생성
 from urllib.parse import urlencode  # 쿼리 생성
 from fastapi import APIRouter, Depends, Request, Response, HTTPException  # FastAPI
-from fastapi.responses import RedirectResponse, HTMLResponse  # 응답
+from fastapi.responses import RedirectResponse  # 응답
 from sqlalchemy.orm import Session  # DB 세션
 from backend.db.session import get_db  # DI
 from backend.core.config import settings  # 설정
@@ -64,10 +64,8 @@ def _oauth_popup_html(frontend_redirect_url: str, access_token: str) -> str:
 
 # Kakao
 @router.get("/kakao/start")
-def kakao_start(res: Response):
-    print(res)
+def kakao_start():
     state = secrets.token_urlsafe(24)
-    _set_oauth_state_cookie(res, "kakao_oauth_state", state)
 
     params = {
         "response_type": "code",
@@ -77,7 +75,9 @@ def kakao_start(res: Response):
         "scope": "account_email",
     }
     url = "https://kauth.kakao.com/oauth/authorize?" + urlencode(params)
-    return RedirectResponse(url)
+    response = RedirectResponse(url)
+    _set_oauth_state_cookie(response, "kakao_oauth_state", state)
+    return response
 
 @router.get("/kakao/callback")
 def kakao_callback(code: str, state: str, req: Request, res: Response, db: Session = Depends(get_db)):
@@ -92,15 +92,15 @@ def kakao_callback(code: str, state: str, req: Request, res: Response, db: Sessi
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
-    set_auth_cookies(res, refresh_token=our_refresh, csrf_token=csrf)
-
-    return HTMLResponse(_oauth_popup_html(settings.FRONTEND_REDIRECT_URL, our_access))
+    frontend_url = f"{settings.FRONTEND_BASE_URL}/?{urlencode({'access_token': our_access, 'social': 'kakao'})}"
+    response = RedirectResponse(url=frontend_url)
+    set_auth_cookies(response, refresh_token=our_refresh, csrf_token=csrf)
+    return response
 
 # Google
 @router.get("/google/start")
-def google_start(res: Response):
+def google_start():
     state = secrets.token_urlsafe(24)
-    _set_oauth_state_cookie(res, "google_oauth_state", state)
 
     params = {
         "response_type": "code",
@@ -112,7 +112,9 @@ def google_start(res: Response):
         "prompt": "consent",
     }
     url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
-    return RedirectResponse(url)
+    response = RedirectResponse(url)
+    _set_oauth_state_cookie(response, "google_oauth_state", state)
+    return response
 
 @router.get("/google/callback")
 def google_callback(code: str, state: str, req: Request, res: Response, db: Session = Depends(get_db)):
@@ -127,15 +129,15 @@ def google_callback(code: str, state: str, req: Request, res: Response, db: Sess
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
-    set_auth_cookies(res, refresh_token=our_refresh, csrf_token=csrf)
-
-    return HTMLResponse(_oauth_popup_html(settings.FRONTEND_REDIRECT_URL, our_access))
+    frontend_url = f"{settings.FRONTEND_BASE_URL}/?{urlencode({'access_token': our_access, 'social': 'google'})}"
+    response = RedirectResponse(url=frontend_url)
+    set_auth_cookies(response, refresh_token=our_refresh, csrf_token=csrf)
+    return response
 
 # Naver
 @router.get("/naver/start")
-def naver_start(res: Response):
+def naver_start():
     state = secrets.token_urlsafe(24)
-    _set_oauth_state_cookie(res, "naver_oauth_state", state)
 
     params = {
         "response_type": "code",
@@ -144,7 +146,9 @@ def naver_start(res: Response):
         "state": state,
     }
     url = "https://nid.naver.com/oauth2.0/authorize?" + urlencode(params)
-    return RedirectResponse(url)
+    response = RedirectResponse(url)
+    _set_oauth_state_cookie(response, "naver_oauth_state", state)
+    return response
 
 @router.get("/naver/callback")
 def naver_callback(code: str, state: str, req: Request, res: Response, db: Session = Depends(get_db)):
@@ -159,6 +163,7 @@ def naver_callback(code: str, state: str, req: Request, res: Response, db: Sessi
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
-    set_auth_cookies(res, refresh_token=our_refresh, csrf_token=csrf)
-
-    return HTMLResponse(_oauth_popup_html(settings.FRONTEND_REDIRECT_URL, our_access))
+    frontend_url = f"{settings.FRONTEND_BASE_URL}/?{urlencode({'access_token': our_access, 'social': 'naver'})}"
+    response = RedirectResponse(url=frontend_url)
+    set_auth_cookies(response, refresh_token=our_refresh, csrf_token=csrf)
+    return response
