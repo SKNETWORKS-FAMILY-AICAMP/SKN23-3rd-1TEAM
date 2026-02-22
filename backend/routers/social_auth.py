@@ -86,9 +86,15 @@ def kakao_callback(code: str, state: str, req: Request, res: Response, db: Sessi
         raise HTTPException(status_code=400, detail="invalid state")
 
     access_token = social_service.kakao_exchange_code_for_token(code)
-    provider_user_id, email = social_service.kakao_fetch_profile(access_token)
+    provider_user_id, email, name = social_service.kakao_fetch_profile(access_token)
 
-    user = social_service.get_or_create_social_user(db, provider="kakao", provider_user_id=provider_user_id, email=email)
+    user = social_service.get_or_create_social_user(
+        db,
+        provider="kakao",
+        provider_user_id=provider_user_id,
+        email=email,
+        name=name,
+    )
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
@@ -123,9 +129,15 @@ def google_callback(code: str, state: str, req: Request, res: Response, db: Sess
         raise HTTPException(status_code=400, detail="invalid state")
 
     access_token = social_service.google_exchange_code_for_token(code)
-    provider_user_id, email = social_service.google_fetch_profile(access_token)
+    provider_user_id, email, name = social_service.google_fetch_profile(access_token)
 
-    user = social_service.get_or_create_social_user(db, provider="google", provider_user_id=provider_user_id, email=email)
+    user = social_service.get_or_create_social_user(
+        db,
+        provider="google",
+        provider_user_id=provider_user_id,
+        email=email,
+        name=name,
+    )
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
@@ -157,9 +169,15 @@ def naver_callback(code: str, state: str, req: Request, res: Response, db: Sessi
         raise HTTPException(status_code=400, detail="invalid state")
 
     access_token = social_service.naver_exchange_code_for_token(code, state=state)
-    provider_user_id, email = social_service.naver_fetch_profile(access_token)
+    provider_user_id, email, name = social_service.naver_fetch_profile(access_token)
 
-    user = social_service.get_or_create_social_user(db, provider="naver", provider_user_id=provider_user_id, email=email)
+    user = social_service.get_or_create_social_user(
+        db,
+        provider="naver",
+        provider_user_id=provider_user_id,
+        email=email,
+        name=name,
+    )
     our_access, our_refresh = issue_tokens_for_user_id(db, user.id)
 
     csrf = new_csrf_token()
