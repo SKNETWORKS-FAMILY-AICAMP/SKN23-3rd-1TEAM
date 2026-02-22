@@ -7,6 +7,7 @@ Description: 로그인, 토큰 처리 및 비밀번호 재설정 로직
 Modification History:
 - 2026-02-15 (양창일): 초기 생성 (로그인, JWT 토큰 관리 로직)
 - 2026-02-21 (김지우): 비밀번호 찾기 (이메일 인증, 비밀번호 업데이트) SQLAlchemy 통합
+- 2026-02-22 (양창일): username 혼동으로 email, name으로 정리, 소셜 로그인 수정
 """
 
 import os
@@ -36,16 +37,16 @@ APP_PASSWORD = os.getenv("APP_PASSWORD")
 # ==========================================
 # 1. 회원가입 및 로그인 (기존 코드 유지)
 # ==========================================
-def signup(db: Session, username: str, password: str) -> None:
-    exists = db.query(User).filter(User.email == username).first()
+def signup(db: Session, email: str, password: str) -> None:
+    exists = db.query(User).filter(User.email == email).first()
     if exists:
         raise ValueError("invalid credentials")
-    user = User(email=username, password=hash_password(password))
+    user = User(email=email, password=hash_password(password))
     db.add(user)
     db.commit()
 
-def login(db: Session, username: str, password: str) -> tuple[str, str, str]:
-    user = db.query(User).filter(User.email == username).first()
+def login(db: Session, email: str, password: str) -> tuple[str, str, str]:
+    user = db.query(User).filter(User.email == email).first()
 
     if (not user) or (not user.password) or (not verify_password(password, user.password)):
         raise ValueError("invalid credentials")  

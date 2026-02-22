@@ -1,4 +1,4 @@
-"""
+﻿"""
 File: auth_schema.py
 Author: 양창일
 Created: 2026-02-15
@@ -7,12 +7,13 @@ Description: 로그인 관련 데이터 모양 정의
 Modification History:
 - 2026-02-15: 초기 생성
 - 2026-02-21 (김지우): email 추가, 비밀번호 찾기 관련 스키마 추가
+- 2026-02-22 (양창일): username 혼동으로 email, name으로 정리, 소셜 로그인 수정
 """
 
 from pydantic import BaseModel, Field  # 스키마
 
 class SignupRequest(BaseModel):
-    username: str = Field(min_length=3, max_length=64)  # 유저명
+    email: str = Field(min_length=3, max_length=255)  # 유저 Email
     password: str = Field(min_length=8, max_length=128)  # 비번
 
 class LoginRequest(BaseModel):
@@ -27,7 +28,8 @@ class TokenResponse(BaseModel):
 
 class MeResponse(BaseModel):
     id: int  # 유저 ID
-    username: str  # 유저명
+    email: str # 유저 Email
+    name: str | None = None # 유저명
 
 # 추가 부분 (김지우)
 class ResetEmailRequest(BaseModel):

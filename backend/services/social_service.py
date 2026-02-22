@@ -6,6 +6,7 @@ Description: 소셜 로그인
 
 Modification History:
 - 2026-02-16: 초기 생성
+- 2026-02-23(양창일): 소셜 로그인 수정
 """
 
 
@@ -19,30 +20,43 @@ def _require(value: str, name: str) -> str:
         raise ValueError(f"missing {name}")
     return value
 
-def get_or_create_social_user(db: Session, provider: str, provider_user_id: str, email: str | None) -> User:
+def get_or_create_social_user(
+    db: Session,
+    provider: str,
+    provider_user_id: str,
+    email: str | None,
+    name: str | None = None,
+) -> User:
     user = (
         db.query(User)
         .filter(User.provider == provider, User.provider_user_id == provider_user_id)
         .first()
     )
     if user:
+        changed = False
         if (not user.email) and email:
             user.email = email
+            changed = True
+        if name and user.name != name:
+            user.name = name
+            changed = True
+        elif (not user.name):
+            user.name = email or f"{provider}_{provider_user_id}"
+            changed = True
+        if changed:
             db.add(user)
             db.commit()
+            db.refresh(user)
         return user
 
-    # 내부 username은 중복 피하려고 provider 기반으로 만든다
-    base_username = f"{provider}_{provider_user_id}"
-    username = base_username[:64]
+    display_name = name or email or f"{provider}_{provider_user_id}"
 
-    # 없으면 새로 생성
     user = User(
-        username=username,
-        password_hash=None,
+        name=display_name,
+        email=email,
+        password=None,
         provider=provider,
         provider_user_id=provider_user_id,
-        email=email,
     )
     db.add(user)
     db.commit()
@@ -67,7 +81,7 @@ def kakao_exchange_code_for_token(code: str) -> str:
     j = resp.json()
     return j["access_token"]
 
-def kakao_fetch_profile(access_token: str) -> tuple[str, str | None]:
+def kakao_fetch_profile(access_token: str) -> tuple[str, str | None, str | None]:
     url = "https://kapi.kakao.com/v2/user/me"
     headers = {"Authorization": f"Bearer {access_token}"}
     resp = requests.get(url, headers=headers, timeout=10)
@@ -75,9 +89,13 @@ def kakao_fetch_profile(access_token: str) -> tuple[str, str | None]:
     j = resp.json()
     provider_user_id = str(j["id"])
     email = None
+    name = None
     kakao_account = j.get("kakao_account") or {}
     email = kakao_account.get("email")
-    return provider_user_id, email
+    properties = j.get("properties") or {}
+    profile = kakao_account.get("profile") or {}
+    name = properties.get("nickname") or profile.get("nickname")
+    return provider_user_id, email, name
 
 # Google
 def google_exchange_code_for_token(code: str) -> str:
@@ -96,7 +114,7 @@ def google_exchange_code_for_token(code: str) -> str:
     j = resp.json()
     return j["access_token"]
 
-def google_fetch_profile(access_token: str) -> tuple[str, str | None]:
+def google_fetch_profile(access_token: str) -> tuple[str, str | None, str | None]:
     # 실서비스에서는 id_token 검증(서명/iss/aud)까지 하는 게 더 안전함
     url = "https://www.googleapis.com/oauth2/v2/userinfo"
     headers = {"Authorization": f"Bearer {access_token}"}
@@ -105,7 +123,8 @@ def google_fetch_profile(access_token: str) -> tuple[str, str | None]:
     j = resp.json()
     provider_user_id = str(j.get("id"))
     email = j.get("email")
-    return provider_user_id, email
+    name = j.get("name")
+    return provider_user_id, email, name
 
 # Naver
 def naver_exchange_code_for_token(code: str, state: str) -> str:
@@ -124,7 +143,7 @@ def naver_exchange_code_for_token(code: str, state: str) -> str:
     j = resp.json()
     return j["access_token"]
 
-def naver_fetch_profile(access_token: str) -> tuple[str, str | None]:
+def naver_fetch_profile(access_token: str) -> tuple[str, str | None, str | None]:
     url = "https://openapi.naver.com/v1/nid/me"
     headers = {"Authorization": f"Bearer {access_token}"}
     resp = requests.get(url, headers=headers, timeout=10)
@@ -133,4 +152,5 @@ def naver_fetch_profile(access_token: str) -> tuple[str, str | None]:
     res = j.get("response") or {}
     provider_user_id = str(res.get("id"))
     email = res.get("email")
-    return provider_user_id, email
+    name = res.get("name") or res.get("nickname")
+    return provider_user_id, email, name
