@@ -6,6 +6,7 @@ Description:  # 서버 시작 파일 (전체를 연결하는 중심 파일)
 
 Modification History:
 - 2026-02-15: 초기 생성
+- 2026-02-22 (김지우) : streamlit 포트 하나 추가
 """
 
 from fastapi import FastAPI  # fastapi
@@ -17,12 +18,17 @@ from backend.routers import infer, auth, social_auth
 
 app = FastAPI()  # 앱
 
-app.add_middleware(  # CORS는 반드시 특정 origin만
+app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8501","http://localhost:5173"],  # Vue 개발 서버 예시
+    allow_origins=[
+        "http://localhost:8501",
+        "http://localhost:8502",  # 현재 사용 중인 포트
+        "http://127.0.0.1:8501",
+        "http://127.0.0.1:8502",
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],
+    allow_methods=["*"],  # GET, POST 등을 모두 허용
+    allow_headers=["*"],  # 모든 헤더 허용
 )
 
 @app.on_event("startup")
