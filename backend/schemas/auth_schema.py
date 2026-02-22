@@ -6,6 +6,7 @@ Description: 로그인 관련 데이터 모양 정의
 
 Modification History:
 - 2026-02-15: 초기 생성
+- 2026-02-21 (김지우): email 추가, 비밀번호 찾기 관련 스키마 추가
 """
 
 from pydantic import BaseModel, Field  # 스키마
@@ -15,13 +16,24 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)  # 비번
 
 class LoginRequest(BaseModel):
-    username: str  # 유저명
+    email: str  # 이메일(아이디)
     password: str  # 비번
 
 class TokenResponse(BaseModel):
-    access_token: str  # 액세스 토큰
+    access_token: str           # 액세스 토큰
     token_type: str = "bearer"  # 타입
+    name: str | None = None     # 유저 이름 (프론트 표시용)
+    role: str | None = None     # 권한 (user / admin)
 
 class MeResponse(BaseModel):
     id: int  # 유저 ID
     username: str  # 유저명
+
+# 추가 부분 (김지우)
+class ResetEmailRequest(BaseModel):
+    email: str
+    auth_code: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str

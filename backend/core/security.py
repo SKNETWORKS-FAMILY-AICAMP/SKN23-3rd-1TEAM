@@ -15,13 +15,17 @@ from jose import jwt  # JWT
 from passlib.context import CryptContext  # 비번 해시
 from backend.core.config import settings  # 설정
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")  # Argon2 사용
+pwd_context = CryptContext(schemes=["bcrypt", "argon2"], deprecated="auto")  # bcrypt(기존 DB) + argon2 지원
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)  # 비번 해시
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return pwd_context.verify(password, password_hash)  # 비번 검증
+    # passlib + 최신 bcrypt 버전 간 호환성 문제 우회: bcrypt 해시는 직접 처리
+    if password_hash and password_hash.startswith(("$2b$", "$2a$", "$2y$")):
+        import bcrypt as _bcrypt
+        return _bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    return pwd_context.verify(password, password_hash)
 
 def new_jti() -> str:
     return secrets.token_hex(16)  # 토큰 고유값
