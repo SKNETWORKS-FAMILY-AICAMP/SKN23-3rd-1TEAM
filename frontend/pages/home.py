@@ -1,228 +1,272 @@
-"""
-File: home.py
-Author: 김지우
-Created: 2026-02-20
-Description: 메인 화면
-
-Modification History:
-- 2026-02-21 (김지우): JWT 해독 로직 백엔드 이관
-- 2026-02-22 (김지우): stx.CookieManager 타이밍 문제 해결, 쿠키 retry 로직 추가
-"""
-
-# ─── 1. 경로 설정 ─────────────────────────────────────────────────────────
-import sys, os, time
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# ─── 2. Streamlit (set_page_config는 반드시 첫 번째 st 호출이어야 함) ──────
 import streamlit as st
-st.set_page_config(page_title="AIWORK", page_icon="👾", layout="wide")
+from datetime import datetime
+import time
+from streamlit_webrtc import webrtc_streamer
 
-# ─── 3. 서드파티 ──────────────────────────────────────────────────────────
-import extra_streamlit_components as stx
-from streamlit_option_menu import option_menu
-from utils.api_utils import api_verify_token
+# --- 페이지 설정 ---
 
-# ==========================================
-# 🎨 CSS
-# ==========================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-* { font-family: 'Noto Sans KR', sans-serif; }
-.alert-warn    { background:rgba(231,76,60,.08);  color:#e74c3c; border:1px solid rgba(231,76,60,.2);   padding:16px; border-radius:8px; text-align:center; font-size:15px; font-weight:600; margin-bottom:20px; }
-.alert-ok      { background:rgba(187,56,208,.08); color:#bb38d0; border:1px solid rgba(187,56,208,.2);  padding:16px; border-radius:8px; text-align:center; font-size:15px; font-weight:700; margin-bottom:20px; }
-.alert-info    { background:rgba(52,152,219,.05); color:#2980b9; border-left:4px solid #3498db; padding:14px 18px; border-radius:6px; font-size:14px; font-weight:500; margin-bottom:16px; }
-[data-testid="stHeader"], #MainMenu, footer, header { visibility:hidden; background:transparent; }
+/* 전체 앱 여백 및 불필요한 UI 제거 */
+.stApp { background-color: #F8F9FA; }
+.block-container { padding: 2rem 3rem !important; max-width: 1400px !important; }
+#MainMenu, footer, header {visibility: hidden;}
+[data-testid="stToolbar"] {display: none;}
+
+/* 타이머 디자인 */
+.timer-box {
+    background-color: #E9ECEF;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    font-size: 35px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #333;
+}
+
+/* 요약 대시보드 카드 디자인 */
+.summary-card {
+    background-color: white;
+    border-left: 5px solid #8B5CF6;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 🍪 쿠키 매니저
+# 🧠 상태 관리 (Session State)
 # ==========================================
-cookie_manager = stx.CookieManager(key="home_cookie_manager")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "running" not in st.session_state:
+    st.session_state.running = False
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
+if "current_q" not in st.session_state:
+    st.session_state.current_q = 1
+if "settings" not in st.session_state:
+    st.session_state.settings = None
+if "last_audio_id" not in st.session_state:
+    st.session_state.last_audio_id = None
 
-# 로그인 직후: 새 토큰을 쿠키에 굽고 user 세션 유지한 채 rerun
-if "new_token" in st.session_state:
-    cookie_manager.set("access_token", st.session_state.new_token)
-    del st.session_state["new_token"]
-    time.sleep(0.3)
-    st.rerun()
-
-# ─── 쿠키 읽기 (stx는 첫 렌더에 못 읽을 수 있어 try/except) ───
-try:
-    token = cookie_manager.get("access_token")
-except Exception:
-    token = None
+# 🔥 시작 버튼을 눌렀을 때 발동하는 함수
+def toggle_timer():
+    if not st.session_state.settings:
+        st.warning("먼저 ⚙️ 면접 설정을 완료해주세요!")
+        return
+        
+    if not st.session_state.running:
+        st.session_state.start_time = time.time()
+        st.session_state.running = True
+        
+        # 시작과 동시에 AI가 첫 질문 던지기!
+        if len(st.session_state.messages) == 0:
+            job = st.session_state.settings['job_role']
+            st.session_state.messages.append({
+                "role": "assistant", 
+                "content": f"반갑습니다. {job} 포지션에 지원해 주셔서 감사합니다. 먼저 간단한 자기소개 부탁드립니다.", 
+                "time": datetime.now().strftime("%H:%M")
+            })
 
 # ==========================================
-# 🔒 강제 로그아웃
+# ⚙️ 모달 1: 면접 설정 및 준비
 # ==========================================
-def force_logout(msg: str):
-    st.markdown(f'<div class="alert-warn">{msg}</div>', unsafe_allow_html=True)
-    st.session_state.clear()
-    try:
-        cookie_manager.delete("access_token")
-    except Exception:
-        pass
-    time.sleep(2)
-    try:
-        st.switch_page("app.py")
-    except Exception:
-        st.switch_page("frontend/app.py")
-    st.stop()
-
-# ==========================================
-# 🔥 인증 체크
-# ==========================================
-if "user" in st.session_state and st.session_state.user is not None:
-    # ✅ 이미 이번 세션에서 인증 완료 → 바로 통과
-    pass
-
-elif token:
-    # 쿠키가 있다면 백엔드에 검증 요청
-    is_valid, result = api_verify_token(token)
-    if is_valid:
-        user_name_from_api = result.get("name") or (token and "사용자") or "사용자"
-        st.session_state.user = {
-            "name": result.get("name"),
-            "role": result.get("role", "user"),
+@st.dialog("⚙️ 면접 설정 및 준비")
+def show_settings_modal():
+    st.write("면접에 필요한 기본 정보를 설정합니다.")
+    st.divider()
+    
+    uploaded_file = st.file_uploader("📄 이력서 업로드 (PDF)", type=["pdf"])
+    q_count = st.slider("🔢 문제 개수", min_value=3, max_value=10, value=5)
+    difficulty = st.pills("🔥 문제 난이도", options=["상 (시니어)", "중 (미들)", "하 (주니어)"], default="중 (미들)")
+    job_role = st.selectbox("💼 지원 직무", ["Python 백엔드 개발자", "Java 백엔드", "데이터 엔지니어", "AI 리서처"])
+    
+    st.divider()
+    if st.button("✅ 적용하기", use_container_width=True, type="primary"):
+        st.session_state.settings = {
+            "has_resume": uploaded_file is not None,
+            "resume_name": uploaded_file.name if uploaded_file else "미제출",
+            "q_count": q_count,
+            "difficulty": difficulty,
+            "job_role": job_role
         }
-        st.session_state.token = token
-    else:
-        force_logout(f"🔒 {result}")
-
-else:
-    # stx가 첫 렌더에 쿠키를 못 읽는 경우 → 한 번만 재시도
-    if not st.session_state.get("_cookie_retry"):
-        st.session_state["_cookie_retry"] = True
-        time.sleep(0.4)
         st.rerun()
+
+# ==========================================
+# 🛑 모달 2: 면접 종료 및 저장 동의 (새로 추가됨!)
+# ==========================================
+@st.dialog("🛑 면접 종료 및 결과 확인")
+def show_end_modal():
+    st.markdown("### 면접이 모두 종료되었습니다.")
+    st.write("고생하셨습니다. AI 면접관이 결과를 분석할 준비를 마쳤습니다.")
+    
+    st.divider()
+    
+    # 디테일 끝판왕: 저장 동의 체크박스
+    st.markdown("<span style='font-size: 13px; color: gray;'>마이페이지 복습 및 AI 학습을 위해 녹음된 음성 및 텍스트 데이터를 서버에 저장하시겠습니까?</span>", unsafe_allow_html=True)
+    save_agree = st.checkbox("✅ 녹음 내용 및 면접 데이터 저장에 동의합니다.")
+    
+    if st.button("확인 (결과 보기)", type="primary", use_container_width=True):
+        if save_agree:
+            st.success("데이터가 안전하게 저장되었습니다. 결과 페이지로 이동합니다...")
+        else:
+            st.info("데이터를 저장하지 않고 결과 페이지로 이동합니다...")
+        
+        time.sleep(1.5)
+        st.switch_page("./page2.py") # 🚀 페이지 이동
+
+# ==========================================
+# 🖥️ 화면 레이아웃 분할 (좌측 4 : 우측 6)
+# ==========================================
+col_left, col_right = st.columns([4, 6], gap="large")
+
+# ---------------------------------------------------------
+# ⬅️ 좌측 영역
+# ---------------------------------------------------------
+with col_left:
+    st.markdown("### 📋 면접 대기실")
+    
+    if st.button("⚙️ 면접 설정 열기", use_container_width=True):
+        show_settings_modal()
+        
+    if st.session_state.settings:
+        s = st.session_state.settings
+        st.markdown(f"""
+        <div class="summary-card">
+            <h4 style="margin-top:0;">✅ 설정 완료</h4>
+            <b>💼 직무:</b> {s['job_role']}<br>
+            <b>🔥 난이도:</b> {s['difficulty']}<br>
+            <b>🔢 문항 수:</b> 총 {s['q_count']}개<br>
+            <b>📄 이력서:</b> {s['resume_name']}
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        # 두 번 시도해도 없으면 진짜 비로그인 상태
-        del st.session_state["_cookie_retry"]
-        force_logout("로그인이 필요한 서비스입니다. 2초 후 이동합니다.")
+        st.info("👆 위 버튼을 눌러 면접 설정을 완료해주세요.")
 
-# 여기까지 오면 session_state.user 확정
-user_info   = st.session_state.user or {}
-user_name   = user_info.get("name") or "사용자"
-user_role   = user_info.get("role", "user")
-role_display = "일반회원" if user_role == "user" else "관리자"
+    st.markdown("#### 📸 지원자 웹캠 화면")
+    webrtc_streamer(
+        key="candidate_cam", 
+        media_stream_constraints={"video": True, "audio": False} 
+    )
+    
+    st.write("") 
 
-# ==========================================
-# 🧭 상단 네비게이션 바
-# ==========================================
-selected = option_menu(
-    menu_title=None,
-    options=["홈", "AI 면접", "내 기록", "마이페이지"],
-    icons=["house", "robot", "clipboard-data", "person"],
-    menu_icon="cast",
-    default_index=0,
-    orientation="horizontal",
-    styles={
-        "container":         {"padding": "0!important", "background-color": "#fafafa"},
-        "icon":              {"color": "#bb38d0", "font-size": "20px"},
-        "nav-link":          {"font-size": "16px", "text-align": "left", "margin": "0px", "--hover-color": "#eee"},
-        "nav-link-selected": {"background-color": "#bb38d0"},
+    t_col1, t_col2 = st.columns([1, 1])
+    
+    with t_col1:
+        elapsed = int(time.time() - st.session_state.start_time) if st.session_state.running else 0
+        minutes, seconds = elapsed // 60, elapsed % 60
+        st.markdown(f'<div class="timer-box">{minutes:02}:{seconds:02}</div>', unsafe_allow_html=True)
+        
+    with t_col2:
+        st.write("")
+        # 🔥 버튼 로직 분기: 실행 중일 땐 종료 모달, 대기 중일 땐 타이머 시작
+        if st.session_state.running:
+            if st.button("⏹ 끝내기 (정지)", use_container_width=True, type="secondary"):
+                show_end_modal()
+        else:
+            st.button("▶️ 시작하기", on_click=toggle_timer, use_container_width=True, type="primary")
+
+    if st.session_state.running:
+        time.sleep(1)
+        st.rerun()
+
+# ---------------------------------------------------------
+# ➡️ 우측 영역: AI 면접관 실시간 채팅
+# ---------------------------------------------------------
+with col_right:
+    total_q = st.session_state.settings["q_count"] if st.session_state.settings else 5
+    job_role_display = st.session_state.settings["job_role"] if st.session_state.settings else "Python 백엔드 개발자"
+    
+    st.markdown(f"**현재 진행률: 질문 {st.session_state.current_q} / {total_q}**")
+    st.progress(st.session_state.current_q / total_q)
+    
+    st.markdown("""
+    <style>
+    [data-testid="column"]:nth-of-type(2) {
+        background-color: #B2C7D9 !important;
+        border-radius: 20px;
+        padding: 20px !important;
+        height: 85vh;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        position: relative;
     }
-)
+    .chat-container { height: 55vh; overflow-y: auto; padding-right: 10px; margin-bottom: 10px; }
+    .chat-container::-webkit-scrollbar { width: 6px; }
+    .chat-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 10px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# ==========================================
-# 🖼️ 배너
-# ==========================================
-st.image(
-    "https://via.placeholder.com/1400x100/1E1E1E/FFFFFF?text=AIWORK+%7C+AI+%EB%AA%A8%EC%9D%98%EB%A9%B4%EC%A0%91+%ED%94%8C%EB%9E%AB%ED%8F%BC",
-    use_container_width=True,
-)
-st.write("")
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    
+    if not st.session_state.messages:
+        st.markdown(f"""
+            <div style="margin:10px 0; text-align:left">
+                <div style="font-size:12px; margin-bottom:4px; color:#333;">🤖 AI 면접관 ({job_role_display})</div>
+                <div style="display:inline-block; background:white; padding:12px 18px; border-radius:20px; max-width:80%;">
+                    안녕하세요! 설정을 마치셨다면 하단의 <b>[시작하기]</b>를 누른 뒤, 마이크나 텍스트로 답변해주세요.
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
-# ==========================================
-# 🏠 홈 탭
-# ==========================================
-if selected == "홈":
-    left_col, _, right_col = st.columns([7, 0.1, 3])
+    for msg in st.session_state.messages:
+        role, time_str = msg["role"], msg.get("time", datetime.now().strftime("%H:%M"))
+        if role == 'user':
+            st.markdown(f"""
+                <div style="margin:15px 0; text-align:right">
+                    <div style="display:inline-block; background:#FEE500; padding:12px 18px; border-radius:20px; max-width:80%; font-size:15px; color:#111; text-align:left;">
+                        {msg["content"]}
+                    </div>
+                    <div style="font-size:11px; color:#555; margin-top:5px;">{time_str}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+                <div style="margin:15px 0; text-align:left">
+                    <div style="font-size:12px; margin-bottom:4px; color:#333;">🤖 AI 면접관</div>
+                    <div style="display:inline-block; background:white; padding:12px 18px; border-radius:20px; max-width:80%; font-size:15px; color:#111; text-align:left;">
+                        {msg["content"]}
+                    </div>
+                    <div style="font-size:11px; color:#555; margin-top:5px;">{time_str}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── 오른쪽 패널 ──────────────────────────────
-    with right_col:
-        with st.container(border=True):
-            c1, c2 = st.columns([2, 8])
-            with c1:
-                st.image(f"https://api.dicebear.com/7.x/avataaars/svg?seed={user_name}", width=55)
-            with c2:
-                st.markdown(f"**{user_name} 님** ({role_display}) 🔒")
-                if st.button("로그아웃 ➔", key="logout_btn"):
-                    try:
-                        cookie_manager.delete("access_token")
-                    except Exception:
-                        pass
-                    st.session_state.clear()
-                    time.sleep(0.3)
-                    st.switch_page("app.py")
+    # =========================================================
+    # 🎙️ STT 마이크 및 텍스트 혼합 입력부
+    # =========================================================
+    final_prompt = None
+    
+    audio_value = st.audio_input("🎙️ 마이크로 답변하기")
+    
+    if audio_value is not None:
+        audio_id = hash(audio_value.getvalue())
+        if audio_id != st.session_state.last_audio_id:
+            st.session_state.last_audio_id = audio_id
+            final_prompt = "🎤 (음성 인식됨) 제가 그 프로젝트에서 주로 담당했던 부분은 데이터베이스 아키텍처 설계와 쿼리 최적화였습니다."
 
-            st.divider()
-            nc1, nc2, nc3 = st.columns(3)
-            nc1.button("이력서",     use_container_width=True)
-            nc2.button("내 기록",    use_container_width=True)
-            nc3.button("마이페이지", use_container_width=True)
+    text_prompt = st.chat_input("⌨️ 텍스트로 답변하기...")
+    if text_prompt:
+        final_prompt = text_prompt
 
-        st.write("")
-        action_ph = st.empty()
-        if st.button("✨ AI 모의 면접 시작", type="primary", use_container_width=True):
-            action_ph.markdown('<div class="alert-ok">✨ 면접 대기실로 이동합니다! 건투를 빕니다!</div>', unsafe_allow_html=True)
-            time.sleep(1)
-            st.switch_page("pages/interview.py")
+    if final_prompt:
+        if not st.session_state.running:
+            st.warning("타이머 [시작하기] 버튼을 먼저 눌러주세요!")
+            st.stop()
 
-        st.write("")
-        with st.container(border=True):
-            st.markdown("🔗 **Github Repository**")
-            st.caption("SKN23-3rd-1TEAM 깃허브 주소")
-
-    # ── 왼쪽 패널 ────────────────────────────────
-    with left_col:
-        st.markdown(f"### **{user_name}** 님을 위한 맞춤 추천")
-        tab1, tab2, tab3 = st.tabs(["📋 추천 공고", "📈 백엔드 트렌드", "💡 AI 면접 Tips"])
-
-        with tab1:
-            for company, role, desc in [
-                ("네이버 (NAVER)", "Python 백엔드 신입/경력", "FastAPI와 MSA 환경에서 대규모 트래픽을 처리할 개발자를 모십니다."),
-                ("카카오 (Kakao)", "AI 엔지니어 인턴",        "LLM 기반 서비스를 개발할 AI 엔지니어를 모집합니다."),
-                ("라인 (LINE)",   "백엔드 개발자 (신입)",     "글로벌 메신저 플랫폼의 백엔드 시스템을 함께 만들어갈 분을 찾습니다."),
-            ]:
-                with st.container(border=True):
-                    a, b = st.columns([8, 2])
-                    with a:
-                        st.markdown(f"#### {company} — {role}")
-                        st.write(desc)
-                    with b:
-                        st.button("지원하기", key=f"apply_{company}", use_container_width=True)
-
-        with tab2:
-            st.markdown('<div class="alert-info">💡 오늘의 백엔드 기술 블로그 및 아티클이 노출되는 영역입니다.</div>', unsafe_allow_html=True)
-            for title, desc in [
-                ("FastAPI vs Django: 2026 트렌드 비교",    "비동기 처리와 타입 힌트를 중심으로 두 프레임워크를 심층 비교합니다."),
-                ("LLM 서빙 최적화: vLLM과 TensorRT-LLM",  "대규모 언어 모델을 프로덕션에서 효율적으로 서빙하는 방법을 알아봅니다."),
-            ]:
-                with st.container(border=True):
-                    st.markdown(f"**{title}**")
-                    st.caption(desc)
-
-        with tab3:
-            st.markdown('<div class="alert-info">💡 최신 AI 면접 합격 후기 및 팁 게시판 영역입니다.</div>', unsafe_allow_html=True)
-            for tip, desc in [
-                ("STAR 기법으로 답변하기",     "Situation → Task → Action → Result 구조로 경험을 구체적으로 설명하세요."),
-                ("기술 면접 단골 질문 TOP 5", "시간복잡도, DB 인덱스, REST API, 동시성, 캐싱 전략을 꼭 준비하세요."),
-            ]:
-                with st.container(border=True):
-                    st.markdown(f"**💬 {tip}**")
-                    st.caption(desc)
-
-elif selected == "AI 면접":
-    st.markdown("## 🤖 AI 모의면접")
-    st.info("면접 기능은 준비 중입니다.")
-
-elif selected == "내 기록":
-    st.markdown("## 📋 내 면접 기록")
-    st.info("면접 기록 기능은 준비 중입니다.")
-
-elif selected == "마이페이지":
-    st.markdown("## 👤 마이페이지")
-    st.info("마이페이지 기능은 준비 중입니다.")
+        st.session_state.messages.append({"role": "user", "content": final_prompt, "time": datetime.now().strftime("%H:%M")})
+        
+        if st.session_state.current_q < total_q:
+            st.session_state.current_q += 1
+            
+        with st.spinner("AI 면접관이 답변을 분석 중입니다..."):
+            time.sleep(1.5)
+            ai_response = f"'{final_prompt}'라는 답변 잘 들었습니다. 데이터베이스 아키텍처 설계 시 가장 중요하게 고려한 점은 무엇인가요?"
+            st.session_state.messages.append({"role": "assistant", "content": ai_response, "time": datetime.now().strftime("%H:%M")})
+        
+        st.rerun()
