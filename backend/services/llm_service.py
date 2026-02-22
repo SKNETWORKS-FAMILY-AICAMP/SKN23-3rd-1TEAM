@@ -12,7 +12,7 @@ Modification History:
 import os
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from backend.services.rag_service import rag_service  # 👈 사서(RAG) 호출
+from backend.services.rag_service import get_rag_service  # 👈 사서(RAG) 지연 호출
 
 
 class LLMService:
@@ -64,12 +64,13 @@ class LLMService:
         지원자의 답변을 바탕으로 맞춤형 꼬리 질문을 비동기(Async)로 생성합니다.
         """
         # 1. 동적 RAG: 방금 대답을 DB에 기억시킴
-        rag_service.append_interview_log(
+        _rag = get_rag_service()
+        _rag.append_interview_log(
             session_id, current_question, user_answer, turn
         )
 
         # 2. RAG 검색: 이력서와 과거 대답에서 단서 찾기
-        context = rag_service.retrieve_context(session_id, user_answer, k=3)
+        context = _rag.retrieve_context(session_id, user_answer, k=3)
 
         # 3. LLM 추론: 프롬프트에 엮어서 발사!
         response = await self.chain.ainvoke(
@@ -79,8 +80,14 @@ class LLMService:
         return response.content
 
 
-# FastAPI 라우터에서 쉽게 가져다 쓸 수 있도록 객체 생성
-llm_service = LLMService()
+# 🔥 지연 초기화: 실제 사용 시점에 생성 (OPENAI_API_KEY 없어도 서버 시작 가능)
+_llm_service_instance = None
+
+def get_llm_service() -> "LLMService":
+    global _llm_service_instance
+    if _llm_service_instance is None:
+        _llm_service_instance = LLMService()
+    return _llm_service_instance
 
 
 def generate_text(prompt: str) -> str:
@@ -91,7 +98,7 @@ def generate_text(prompt: str) -> str:
     if not user_answer:
         return ""
 
-    response = llm_service.chain.invoke(
+    response = get_llm_service().chain.invoke(
         {
             "job_role": "Python 백엔드 개발자",
             "context": "",
@@ -99,3 +106,4 @@ def generate_text(prompt: str) -> str:
         }
     )
     return getattr(response, "content", str(response))
+

@@ -12,9 +12,11 @@ import os
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-class Settings(BaseModel):
-    load_dotenv()
+# backend/.env 파일의 절대 경로를 계산하여 명시적으로 로드
+_ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+load_dotenv(_ENV_FILE, override=True)
 
+class Settings(BaseModel):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
     SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-super-long-random")
     ALGORITHM: str = "HS256"
