@@ -199,3 +199,5 @@ pj3_venv/
 .env
 
 chroma.sqlite3
+*.bin
+*.toml
