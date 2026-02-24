@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin:0; padding:0; background: transparent; }
+      .shell {
+        width: 100%;
+        height: 520px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #0b0b0b;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display:block;
+      }
+      .overlay {
+        position:absolute; inset:0;
+        display:flex; align-items:center; justify-content:center;
+        color:#eaeaea; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        background: rgba(0,0,0,0.35);
+        text-align:center;
+        padding: 16px;
+      }
+      .btn {
+        position:absolute;
+        left:16px; bottom:16px;
+        padding:10px 14px;
+        border-radius: 12px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <video id="v" autoplay playsinline muted></video>
+      <div id="overlay" class="overlay">카메라 권한이 필요합니다.</div>
+      <button id="btn" class="btn">권한 요청</button>
+    </div>
+
+    <script>
+      const video = document.getElementById("v");
+      const overlay = document.getElementById("overlay");
+      const btn = document.getElementById("btn");
+
+      async function start() {
+        try {
+          overlay.textContent = "권한 요청 중...";
+          const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+          video.srcObject = stream;
+          overlay.style.display = "none";
+          btn.style.display = "none";
+        } catch (e) {
+          overlay.textContent = "권한이 거절되었습니다. 브라우저 사이트 설정에서 카메라를 허용하세요.";
+          btn.style.display = "block";
+        }
+      }
+
+      // 박스는 항상 고정, 자동 시작은 하지 않음(원하면 아래 주석 해제)
+      // start();
+
+      btn.addEventListener("click", start);
+    </script>
+  </body>
+</html>
