@@ -22,7 +22,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
-st.set_page_config(page_title="비밀번호 찾기", page_icon="🔍", layout="centered")
+st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
 # frontend/.env 명시적 로드
 _ENV_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
