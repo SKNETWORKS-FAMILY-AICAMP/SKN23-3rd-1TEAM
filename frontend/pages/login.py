@@ -221,7 +221,7 @@ html, body, [data-testid="stAppViewContainer"] { background-color: #f5f5f5 !impo
 label[data-testid="stWidgetLabel"] > div > p { font-size: 13px !important; color: #555 !important; font-weight: 500 !important; margin-bottom: 4px !important; }
 input[type="text"], input[type="password"] { border-color: transparent !important; border-radius: 6px !important; font-size: 15px !important; padding: 12px 14px !important; background: #fafafa !important; }
 input[type="text"]:focus, input[type="password"]:focus { border-color: #bb38d0 !important; background: #fff !important; outline: none !important; box-shadow: 0 0 0 2px rgba(187, 56, 208, 0.12) !important; }
-[data-testid="stButton"] > button[kind="primary"], div[data-testid="stButton"]:first-of-type > button, [data-testid="stFormSubmitButton"] > button { background-color: #bb38d0 !important; color: #fff !important; border: none !important; border-radius: 6px !important; height: 50px !important; font-size: 16px !important; font-weight: 700 !important; width: 100% !important; letter-spacing: 0.5px; transition: background 0.15s; margin-top: 6px; }
+[data-testid="stButton"] > button[kind="primary"], div[data-testid="stButton"]:first-of-type > button, [data-testid="stFormSubmitButton"] > button { background-color: #bb38d0 !important; color: #fff !important; border: none !important; border-radius: 16px !important; height: 50px !important; font-size: 16px !important; font-weight: 700 !important; width: 100% !important; letter-spacing: 0.5px; transition: background 0.15s; margin-top: 6px; }
 div[data-testid="stButton"]:first-of-type > button:hover, [data-testid="stFormSubmitButton"] > button:hover { background-color: #872a96 !important; }
 .divider-row { display: flex; align-items: center; margin: 24px 0 20px; color: #bbb; font-size: 13px; gap: 10px; }
 .divider-row::before, .divider-row::after { content: ''; flex: 1; border-top: 1px solid #eee; }
@@ -233,7 +233,7 @@ div[data-testid="stButton"]:first-of-type > button:hover, [data-testid="stFormSu
 .helper-links a { color: #888; text-decoration: none; font-weight: 500; }
 .helper-links a:hover{ color: #bb38d0 !important; text-decoration: underline; transition: all 300ms; }
 .helper-sep { color: #ddd; }
-[data-testid="stButton"] > button { border-radius: 6px !important; }
+[data-testid="stButton"] > button { border-radius: 16px !important; }
 [data-testid="stForm"] { border: none !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; }
 .custom-error-msg { font-size: 13px; color: #e74c3c; text-align: center; margin-top: 10px; font-weight: 500; }
 .custom-success-box { background-color: rgba(187, 56, 208, 0.08); color: #bb38d0; border: 1px solid rgba(187, 56, 208, 0.2); padding: 14px; border-radius: 8px; text-align: center; font-size: 14px; font-weight: 600; margin-bottom: 16px; }

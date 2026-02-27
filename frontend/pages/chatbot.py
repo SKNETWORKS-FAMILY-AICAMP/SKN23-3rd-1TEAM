@@ -185,7 +185,7 @@ h1, h2, h3, p, div, span, label { color: #333 !important; }
     background-color: #bb38d0 !important;
     color: #fff !important;
     border: none !important;
-    border-radius: 8px !important;
+    border-radius: 16px !important;
     height: 50px !important;
     font-size: 16px !important;
     font-weight: 700 !important;
@@ -199,7 +199,7 @@ h1, h2, h3, p, div, span, label { color: #333 !important; }
     background: #fff !important;
     color: #555 !important;
     border: 1px solid #ddd !important;
-    border-radius: 8px !important;
+    border-radius: 16px !important;
     font-weight: 600 !important;
 }
 

@@ -268,21 +268,21 @@ def generate_evaluation(messages: list, job_role: str, difficulty: str, resume_t
 난이도: {difficulty} {resume_section}
 
 [형식]
-## 종합 점수
+### 1. 종합 점수
 **XX / 100점** — (총평)
 
-## BEST 답변
+### 2. BEST 답변
 > 인용
 **이유**: 설명
 
-## 강점
+### 3. 강점
 1. **(키워드)**: 설명
 
-## 개선 제안
+### 4. 개선 제안
 | 질문 | 요약 | 모범 방향 |
 |---|---|---|
 
-## 키워드 체크리스트
+### 5. 키워드 체크리스트
 | 키워드 | 여부 | 비고 |
 |---|---|---|
 
@@ -380,6 +380,8 @@ def get_home_guide_response(user_message: str, web_context: str) -> str:
 - 플랫폼 이용 방법에 대한 질문은 반드시 [AIWORK 플랫폼 핵심 매뉴얼]을 기반으로 정확히 안내하세요. 없는 기능을 지어내면 안 됩니다.
 - 직무 전망, 특정 기업의 최신 채용 동향, 기술 트렌드 등에 대한 질문은 반드시 [최신 웹 검색 정보]의 팩트를 기반으로 답변하세요.
 - 만약 사용자의 질문이 위 두 가지(플랫폼 사용법 + 취업 조언)를 모두 포함한다면, 자연스럽게 이어서 하나의 흐름으로 설명하세요.
+- 절대로 마크다운 기호(**, # 등)나 번호 표기(1., 2.)를 쓰지 마세요. 만약 사용이 필요할때는 굵은 글씨로 표현하세요. 
+- 절대 글씨 크기를 마크다운 형식으로 조절하지 말고, 상대와 채팅을 한다는 느낌으로 자연스럽게 대답하세요.
 """.replace("{web_context}", web_context if web_context else "관련 웹 검색 정보 없음.")
 
     try:
@@ -434,3 +436,44 @@ def get_translated_news_summary(raw_news_data: str) -> str:
     except Exception as e:
         print(f"LLM 번역 에러: {e}")
         return ""
+
+        # services/llm_service.py 파일 맨 아래 추가!
+
+def get_home_guide_response_stream(user_message: str, web_context: str):
+    """홈 화면 가이드 챗봇 응답을 한 글자씩 실시간으로 스트리밍(Streaming)합니다."""
+    
+    system_prompt = f"""
+당신은 차세대 AI 모의면접 플랫폼 'AIWORK'의 수석 커리어 어드바이저입니다.
+구직자의 불안한 마음을 공감하고 응원하는 따뜻한 태도를 갖추되, 조언을 할 때는 전문가답고 명확하게 답변하세요.
+가독성을 높이기 위해 적절한 줄바꿈, 글머리 기호를 활용하세요.
+
+[AIWORK 플랫폼 핵심 매뉴얼]
+1. 대시보드(홈): 맞춤형 추천 채용공고, 최신 IT/백엔드 기술 트렌드 확인 가능
+2. AI 모의면접: 이력서 기반 맞춤 질문, STT/TTS 기반 실전 음성 면접, 꼬리질문 기능
+3. 내 기록 & 이력서: 면접 상위 백분위, 강약점 피드백 제공, 이력서 관리
+4. 마이페이지: 내 정보 관리
+
+[최신 웹 검색 정보 (Tavily)]
+{web_context if web_context else "관련 웹 검색 정보 없음. (일반적인 AIWORK 사용법이나 지식으로 답변하세요.)"}
+
+[응답 지침]
+- 플랫폼 이용법은 [AIWORK 매뉴얼] 기반으로 답변하세요.
+- 트렌드, 동향 등을 물어보면 [웹 검색 정보]를 요약해서 팩트 기반으로 답변하세요.
+"""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            temperature=0.5,
+            stream=True  
+        )
+        
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
+                
+    except Exception as e:
+        yield f"죄송합니다. 오류가 발생했습니다. ({e})"

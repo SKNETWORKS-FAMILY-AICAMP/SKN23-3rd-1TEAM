@@ -161,7 +161,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 /* 메인 보라색 버튼 */
 [data-testid="stButton"] > button[kind="primary"] {
     background-color: #bb38d0 !important; color: #fff !important; border: none !important;
-    border-radius: 6px !important; height: 50px !important; font-size: 16px !important;
+    border-radius: 16px !important; height: 50px !important; font-size: 16px !important;
     font-weight: 700 !important; width: 100% !important; letter-spacing: 0.5px;
     transition: background 0.15s; margin-top: 0px !important;
 }
@@ -170,7 +170,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 /* 일반 버튼 (인증 확인, 처음으로 등) */
 div[data-testid="stButton"] > button {
     background-color: #bb38d0 !important; color: #fff !important; border: none !important;
-    border-radius: 6px !important; height: 50px !important; font-size: 16px !important;
+    border-radius: 16px !important; height: 50px !important; font-size: 16px !important;
     font-weight: 700 !important; letter-spacing: 0.5px; transition: background 0.15s; margin-top: 6px;
 }
 div[data-testid="stButton"] > button:hover { background-color: #872a96 !important; }

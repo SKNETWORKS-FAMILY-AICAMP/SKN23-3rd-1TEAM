@@ -38,7 +38,7 @@ st.markdown("""
 * { font-family: 'Pretendard', sans-serif; }
 
 /* 배경 및 기본 설정 */
-[data-testid="stAppViewContainer"] { background-color: #ffffff !important; }
+[data-testid="stAppViewContainer"] { background-color: #f5f5f5 !important; }
 [data-testid="stHeader"] { display: none; }
 .block-container { max-width: 500px !important; padding: 2rem 1rem !important; }
 
@@ -46,24 +46,24 @@ st.markdown("""
 .app-header {
     display: flex; align-items: center; justify-content: center;
     position: relative; margin-bottom: 30px; padding-bottom: 15px;
-    border-bottom: 1px solid #f1f3f5;
+    border-bottom: 1px solid #e9ecef;
 }
-.app-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #111; }
+.app-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #000; }
 
 /* 프로필 사진 영역 */
 .profile-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
 .profile-img-circle {
     width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
-    background-color: #f1f3f5; margin-bottom: 16px; border: 1px solid #e9ecef;
+    background-color: #f5f5f5; margin-bottom: 16px; border: 1px solid #e9ecef;
 }
 
 /* 리스트 뷰 (정보 행) */
 .list-row {
-    padding: 16px 0; border-bottom: 1px solid #f1f3f5;
+    padding: 16px 0; border-bottom: 1px solid #e9ecef;
     position: relative; display: flex; flex-direction: column; justify-content: center;
 }
-.list-label { font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500; }
-.list-value { font-size: 16px; color: #111; font-weight: 500; }
+.list-label { font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500; }
+.list-value { font-size: 16px; color: #000; font-weight: 500; }
 .list-arrow { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 18px; }
 
 /* 하단 탈퇴 버튼을 app.py의 비밀번호 찾기 링크처럼 위장시키는 마법의 CSS */
@@ -136,7 +136,7 @@ def withdraw_dialog(email):
         f"""
         <div style="text-align:center; padding: 10px 0 20px 0;">
             <div style="font-size: 40px; margin-bottom: 10px;">👾</div>
-            <p style="font-size:15px; color:#333; line-height:1.6; margin-bottom:15px;">
+            <p style="font-size:15px; color:#000; line-height:1.6; margin-bottom:15px;">
                 <b>{email}</b> 계정을 정말 탈퇴하시겠습니까?<br>
                 <span style="color:#e74c3c; font-size:13px;">등록된 데이터는 접근이 차단되며, 30일 후 파기됩니다.</span>
             </p>

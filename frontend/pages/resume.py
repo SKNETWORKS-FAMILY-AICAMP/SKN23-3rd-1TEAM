@@ -42,56 +42,55 @@ st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
-html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pretendard', sans-serif; }
-.stApp { background-color: #f8fafc !important; background-image: radial-gradient(at 0% 0%, rgba(243, 232, 255, 0.7) 0px, transparent 40%), radial-gradient(at 100% 100%, rgba(243, 232, 255, 0.7) 0px, transparent 40%); }
+html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pretendard', sans-serif; color: #000; }
+.stApp { background-color: #f5f5f5 !important; background-image: none !important; }
 .block-container { max-width: 1050px !important; padding-top: 4rem !important; padding-bottom: 5rem !important; }
 
-.hero-title { font-size: 38px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
-.hero-title span { background: linear-gradient(135deg, #bb38d0, #8b1faa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-subtitle { font-size: 16px; color: #64748b; margin-bottom: 40px; font-weight: 500; }
+.hero-title { font-size: 38px; font-weight: 800; color: #000; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
+.hero-title span { color: #bb38d0; }
+.hero-subtitle { font-size: 16px; color: #666; margin-bottom: 40px; font-weight: 500; }
 
 /* ─── 내 이력서 리스트 카드 ─── */
 .resume-card {
     background: #ffffff; border-radius: 16px; padding: 24px;
-    border: 1px solid #e2e8f0; border-left: 5px solid #bb38d0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: all 0.2s;
+    border: none; border-left: 5px solid #bb38d0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07); transition: all 0.2s;
     height: 100%;
 }
-.resume-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(187, 56, 208, 0.1); border-color: #d8b4e2; }
-.r-title { font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
-.r-role { display: inline-block; background: #fdf4ff; color: #bb38d0; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-bottom: 12px; }
-.r-date { font-size: 13px; color: #94a3b8; margin-bottom: 16px; }
+.resume-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border-color: #d8b4e2; }
+.r-title { font-size: 18px; font-weight: 800; color: #000; margin-bottom: 6px; }
+.r-role { display: inline-block; background: #fdf4ff; color: #bb38d0; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 16px; margin-bottom: 12px; }
+.r-date { font-size: 13px; color: #666; margin-bottom: 16px; }
 
 /* ─── 새 이력서 추가 카드 ─── */
 .new-resume-card {
     background: transparent; border-radius: 16px; padding: 24px;
-    border: 2px dashed #cbd5e1; display: flex; flex-direction: column;
+    border: 2px dashed #bb38d0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; height: 100%;
     cursor: pointer; transition: all 0.2s; text-align: center; min-height: 180px;
 }
-.new-resume-card:hover { border-color: #bb38d0; background: rgba(253, 244, 255, 0.5); }
+.new-resume-card:hover { border-color: #872a96; background: rgba(253, 244, 255, 0.5); }
 .new-icon { font-size: 30px; margin-bottom: 10px; }
-.new-text { font-size: 16px; font-weight: 700; color: #64748b; }
+.new-text { font-size: 16px; font-weight: 700; color: #666; }
 
 /* 대시보드 컴포넌트들 */
-.premium-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); border: 1px solid rgba(255, 255, 255, 0.5); margin-bottom: 24px; }
-.card-header { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+.premium-card { background: #ffffff; border-radius: 16px; padding: 30px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; margin-bottom: 24px; }
+.card-header { font-size: 20px; font-weight: 800; color: #000; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
 .badge-container { display: flex; flex-wrap: wrap; gap: 10px; }
-.tech-badge { background: linear-gradient(135deg, #ffffff, #fdf4ff); color: #9333ea; padding: 10px 20px; border-radius: 24px; font-size: 14.5px; font-weight: 700; border: 1px solid #f3e8ff; box-shadow: 0 2px 8px rgba(147, 51, 234, 0.05); }
-.progress-bg { background-color: #f1f5f9; border-radius: 12px; height: 16px; width: 100%; overflow: hidden; position: relative; margin-top: 10px; }
-.progress-fill { background: linear-gradient(90deg, #bb38d0, #8b1faa, #bb38d0); background-size: 200% 200%; animation: gradient-flow 3s ease infinite; height: 100%; border-radius: 12px; }
-@keyframes gradient-flow { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+.tech-badge { background: #f5f5f5; color: #000; padding: 10px 20px; border-radius: 16px; font-size: 14.5px; font-weight: 700; border: none; }
+.progress-bg { background-color: #f5f5f5; border-radius: 16px; height: 16px; width: 100%; overflow: hidden; position: relative; margin-top: 10px; }
+.progress-fill { background: #bb38d0; height: 100%; border-radius: 16px; }
 .match-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
 .match-score { font-size: 34px; font-weight: 800; color: #bb38d0; line-height: 1; }
-.match-feedback { margin-top: 24px; font-size: 15px; color: #475569; line-height: 1.6; background: #f8fafc; padding: 18px 20px; border-radius: 14px; border-left: 5px solid #bb38d0; font-weight: 500; }
-.q-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-.q-num { display: inline-block; background: linear-gradient(135deg, #bb38d0, #8b1faa); color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 8px; margin-bottom: 12px; }
-.q-text { font-size: 16px; color: #1e293b; font-weight: 600; line-height: 1.6; }
+.match-feedback { margin-top: 24px; font-size: 15px; color: #666; line-height: 1.6; background: #ffffff; padding: 18px 20px; border-radius: 16px; border-left: 5px solid #bb38d0; font-weight: 500; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); }
+.q-box { background: #ffffff; border: none; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); }
+.q-num { display: inline-block; background: #bb38d0; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 16px; margin-bottom: 12px; }
+.q-text { font-size: 16px; color: #000; font-weight: 600; line-height: 1.6; }
 
-[data-testid="stButton"] > button[kind="primary"] { background: linear-gradient(135deg, #bb38d0, #8b1faa) !important; color: white !important; font-weight: 800 !important; font-size: 18px !important; border: none !important; border-radius: 16px !important; height: 58px !important; box-shadow: 0 8px 25px rgba(187, 56, 208, 0.3) !important; transition: all 0.2s; }
-[data-testid="stButton"] > button[kind="primary"]:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(187, 56, 208, 0.4) !important; }
-[data-testid="stExpander"] { background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-[data-testid="stExpander"] summary p { font-weight: 700; color: #1e293b; font-size: 15px; }
+[data-testid="stButton"] > button[kind="primary"] { background: #bb38d0 !important; color: white !important; font-weight: 800 !important; font-size: 18px !important; border: none !important; border-radius: 16px !important; height: 58px !important; transition: all 0.2s; }
+[data-testid="stButton"] > button[kind="primary"]:hover { transform: translateY(-3px); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07) !important; }
+[data-testid="stExpander"] { background-color: #ffffff; border-radius: 16px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+[data-testid="stExpander"] summary p { font-weight: 700; color: #000; font-size: 15px; }
 hr { border-color: #e2e8f0 !important; margin: 2rem 0 !important; border-width: 2px !important; }
 </style>
 """,
