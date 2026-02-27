@@ -15,6 +15,7 @@ import os
 import base64
 import extra_streamlit_components as stx
 from utils.api_utils import api_verify_token
+from datetime import datetime
 
 
 # 프로젝트 루트 경로 및 backend 경로 추가
@@ -103,13 +104,22 @@ def require_login():
 
 # ================================================================================
 
+import streamlit as st
+import base64
+import os
+
 # 로컬 이미지를 읽어서 Base64 문자열로 변환하는 함수
 def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
 
 def inject_custom_header():
-    import os
+    # 🔥 1. 현재 로그인한 사용자의 정보를 Streamlit 세션에서 가져옵니다.
+    # (로그인이 안 되어 있거나 정보가 없으면 기본값으로 '사용자'를 출력합니다.)
+    user_info = st.session_state.get("user", {})
+    user_name = user_info.get("name") 
+    
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     frontend_root = os.path.dirname(current_dir)
     image_path = os.path.join(frontend_root, "assets", "AIWORK.jpg")
@@ -120,7 +130,8 @@ def inject_custom_header():
         # JPEG 이미지일 경우 data:image/jpeg;base64, 를 붙여줍니다.
         img_src = f"data:image/jpeg;base64,{img_base64}"
     except FileNotFoundError:
-        st.error(f"이미지 경로를 찾을 수 없습니다: {image_path}")
+        # 헤더 렌더링을 막지 않기 위해 에러 메시지는 숨기거나 로그로만 남기는 것이 좋습니다.
+        # st.error(f"이미지 경로를 찾을 수 없습니다: {image_path}") 
         img_src = "" # 에러 시 빈 문자열 처리
 
     # 파이썬 f-string을 사용하기 위해 기존 HTML 문자열을 f""" """ 로 감쌉니다.
@@ -186,7 +197,8 @@ def inject_custom_header():
     }}
     .icon-group {{
         display: flex;
-        font-size: 24px;
+        font-size: 15px; /* 글씨 크기를 메뉴바에 맞게 살짝 조절 */
+        font-weight: 600;
     }}
     .icon-group a {{
         text-decoration: none;
@@ -197,7 +209,7 @@ def inject_custom_header():
         justify-content: center;
     }}
     .icon-group a:hover {{
-        transform: scale(1.1);
+        color: #bb38d0;
     }}
     </style>
     <div class="custom-header">
@@ -212,13 +224,12 @@ def inject_custom_header():
         </div>
         <div class="header-utils">
             <div class="icon-group">
-                <a href="/my_info" target="_self" title="마이페이지">👤</a>
+                <a href="/my_info" target="_self" title="마이페이지">👤 {user_name} 님, 반갑습니다</a>
             </div>
         </div>
     </div>
     """
     st.markdown(header_html, unsafe_allow_html=True)
-
 # ================================================================================
 
 
@@ -397,12 +408,12 @@ def get_translated_news_summary(raw_news_data: str) -> str:
         print(f"LLM 번역 에러: {e}")
         return ""
 
+@st.cache_data(ttl=3600, show_spinner=False)
 def render_realtime_ai_news():
     """Tavily를 활용해 최신 AI 소식을 카드로 렌더링 (한글 + 스크롤 지원)"""
-    import streamlit as st
 
-    # 1. Tavily 검색 실행
-    query = "2026년 최신 AI 및 백엔드 기술 트렌드 10가지"
+    current_ym = datetime.now().strftime("%Y년 %m월")
+    query = f"{current_ym} 기준 최신 AI 및 백엔드 기술 트렌드 10가지"
     
     try:
         with st.spinner("실시간 AI 트렌드를 분석중 ..."):
@@ -412,13 +423,17 @@ def render_realtime_ai_news():
             raw_news = get_translated_news_summary(raw_news)
             
         if raw_news:
-            st.markdown(f"**2026년 2월 26일 실시간 브리핑**")
+            # ──────────────────────────────────────────────────────
+            # 💡 [핵심 수정] 오늘 날짜를 "YYYY년 M월 D일" 포맷으로 자동 생성!
+            today_str = datetime.now().strftime("%Y년 %m월 %d일")
+            st.markdown(f"**{today_str} 실시간 브리핑**")
+            # ──────────────────────────────────────────────────────
             
             # 텍스트를 LLM이 만들기로 약속한 '---' 구분자로 정확히 자릅니다.
             news_items = [item.strip() for item in raw_news.split('---') if len(item.strip()) > 5]
             
             # 💡 높이가 450px로 고정된 스크롤 컨테이너 생성!
-            with st.container(height=450, border=True):
+            with st.container(height=400, border=True):
                 
                 # 최대 10개까지만 가져와서 반복문으로 그리기
                 for i, news in enumerate(news_items[:10]): 
@@ -439,5 +454,3 @@ def render_realtime_ai_news():
             
     except Exception as e:
         st.error(f"뉴스 연결 실패: {e}")
-
-        

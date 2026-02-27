@@ -50,8 +50,6 @@ from services.rag_service import clear_resume_for_session, store_resume
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
 
-
-
 def get_image_base64(image_path: str) -> str:
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
@@ -75,17 +73,17 @@ def inject_custom_header() -> None:
         .custom-header {{
             position: fixed; top: 0; left: 0; right: 0; height: 72px;
             background-color: #ffffff; display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; border-bottom: 1px solid #e2e8f0; z-index: 999999;
+            padding: 0 40px; border-bottom: none; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); z-index: 999999;
             font-family: 'Pretendard', sans-serif;
         }}
         .header-logo {{ display: flex; align-items: center; text-decoration: none; }}
         .header-logo img {{ height: 28px; width: auto; object-fit: contain; }}
         .header-menu {{ display: flex; gap: 40px; position: absolute; left: 50%; transform: translateX(-50%); }}
-        .header-menu a {{ text-decoration: none; color: #111111; font-size: 16px; font-weight: 600; transition: color 0.2s; }}
+        .header-menu a {{ text-decoration: none; color: #000000; font-size: 16px; font-weight: 600; transition: color 0.2s; }}
         .header-menu a:hover {{ color: #bb38d0; }}
         .header-utils {{ display: flex; align-items: center; }}
         .icon-group {{ display: flex; font-size: 24px; }}
-        .icon-group a {{ text-decoration: none; color: #333333; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }}
+        .icon-group a {{ text-decoration: none; color: #000000; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }}
         .icon-group a:hover {{ transform: scale(1.1); }}
         </style>
         <div class="custom-header">
@@ -273,33 +271,60 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
     * { font-family: 'Pretendard', sans-serif !important; box-sizing: border-box; }
     html, body, .stApp { background-color: #f5f5f5 !important; }
-    [data-testid="stHeader"], [data-testid="stToolbar"], #MainMenu, footer { display: none !important; visibility: hidden; }
+    /* 숨길 요소들 */
+    [data-testid="stHeader"], footer { visibility: hidden; }
     .setup-card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 36px 32px; margin-bottom: 24px; }
     .page-title { font-size: 26px; font-weight: 700; color: #bb38d0 !important; text-align: center; margin-bottom: 6px; }
     .page-subtitle { font-size: 14px; color: #888 !important; text-align: center; margin-bottom: 0; }
-    .persona-badge { display: inline-block; background: linear-gradient(135deg, #bb38d0, #7b2cb1); color: white !important; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-left: 8px; }
-    .chat-header { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); padding: 14px 20px; margin-bottom: 16px; }
-    .chat-header-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #bb38d0, #7b2cb1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-    .chat-header-name { font-size: 16px; font-weight: 700; color: #333 !important; }
-    .chat-header-info { font-size: 12px; color: #999 !important; }
-    .ai-bubble { background: #fff; border: 1px solid #eee; border-radius: 16px; border-top-left-radius: 4px; padding: 14px 18px; max-width: 82%; color: #333 !important; font-size: 15px; line-height: 1.8; margin-bottom: 10px; white-space: pre-wrap; }
-    .user-bubble { background: linear-gradient(135deg, #bb38d0, #8b1faa); border-radius: 16px; border-top-right-radius: 4px; padding: 14px 18px; max-width: 82%; color: #fff !important; font-size: 15px; line-height: 1.8; margin-bottom: 10px; white-space: pre-wrap; }
-    .sender-label { font-size: 11px; color: #bb38d0 !important; font-weight: 700; margin-bottom: 4px; }
-    .followup-badge { display: inline-block; background: #fff3e0; color: #e67e22 !important; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; }
-    .score-mini { display: inline-block; background: #f0fdf4; color: #16a34a !important; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
-    [data-testid="stButton"] > button[kind="primary"],
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="baseButton-primary"] {
-        background: linear-gradient(135deg, #bb38d0, #8b1faa) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 10px !important;
-        height: 50px !important;
-        font-size: 16px !important;
-        font-weight: 700 !important;
+    .persona-badge { font-size: 11px; background: #bb38d0; color: #fff; padding: 2px 8px; border-radius: 16px; margin-left: 8px; vertical-align: middle; }
+    /* 채팅 타이틀 박스 */
+    .chat-header {
+        background: #ffffff; border-radius: 16px; padding: 16px 20px;
+        margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07); border: none;
     }
-    [data-testid="stButton"] > button:not([kind="primary"]),
-    .stButton > button:not([kind="primary"]) {
+    .chat-header-left { display: flex; align-items: center; gap: 12px; }
+    .chat-header-icon { font-size: 28px; background: #fdf4ff; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #bb38d0; }
+    .chat-header-name { font-size: 18px; font-weight: 800; color: #000; letter-spacing: -0.5px; }
+    .chat-header-info { font-size: 13px; color: #666; font-weight: 500; margin-top: 4px; }
+    
+    /* 채팅 메시지 영역 */
+    .ai-bubble {
+        background: #ffffff; border: none; border-radius: 16px;
+        padding: 16px 20px; color: #000; font-size: 15px; line-height: 1.6;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07); max-width: 85%; align-self: flex-start;
+        position: relative; margin-bottom: 12px; white-space: pre-wrap; font-weight: 500;
+        animation: fadeIn 0.3s ease-in;
+    }
+    .user-bubble {
+        background: #bb38d0; border-radius: 16px;
+        padding: 16px 20px; color: #ffffff; font-size: 15px; line-height: 1.6;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07); max-width: 85%; align-self: flex-end;
+        position: relative; margin-bottom: 12px; white-space: pre-wrap; font-weight: 500;
+        animation: fadeIn 0.3s ease-in;
+    }
+    .sender-label { font-size: 12px; font-weight: 700; color: #bb38d0; margin-bottom: 6px; padding-left: 4px; }
+    .followup-badge { display: inline-block; font-size: 11px; background: #fff5e6; color: #d97706; padding: 2px 8px; border-radius: 16px; margin-bottom: 8px; margin-left: 4px; border: 1px solid #ffedd5; font-weight: 600; }
+    .score-mini { font-size: 11px; color: #666; text-align: right; margin-top: 4px; padding-right: 4px; font-weight: 600; }
+    .stApp * { color: #000; } 
+    /* 메인 컨테이너 */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff !important;
+        border: none !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07) !important;
+        padding: 24px !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    /* 버튼 */
+    button[kind="primary"] {
+        background: #bb38d0 !important;
+        border: none !important; color: white !important; font-weight: 700 !important;
+        border-radius: 16px !important; height: 50px !important;
+    }
+    button[kind="primary"]:hover { filter: brightness(1.1); box-shadow: 0 4px 24px rgba(0,0,0,0.07) !important;}
+    [data-testid="stButton"] > button:not([kind="primary"]) {
         background: #fff !important;
         color: #555 !important;
         border: 1px solid #ddd !important;
@@ -308,11 +333,11 @@ st.markdown(
         font-size: 16px !important;
         font-weight: 600 !important;
     }
-    .result-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.07); padding: 28px 24px; margin-bottom: 20px; }
-    .result-title { font-size: 22px; font-weight: 700; color: #bb38d0 !important; text-align: center; margin-bottom: 20px; }
-    .score-circle { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #bb38d0, #7b2cb1); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 20px auto; }
-    .score-number { font-size: 32px; font-weight: 800; color: #fff !important; }
-    .score-label { font-size: 11px; color: rgba(255,255,255,0.85) !important; font-weight: 600; }
+    .result-card { background: #ffffff; border-radius: 16px; padding: 32px 24px; text-align: center; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.07); margin-bottom: 24px; }
+    .result-title { font-size: 22px; font-weight: 800; color: #000; margin-bottom: 16px; }
+    .score-circle { width: 140px; height: 140px; border-radius: 50%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 24px rgba(0,0,0,0.07); border: 4px solid #bb38d0; }
+    .score-number { font-size: 40px; font-weight: 900; color: #bb38d0; line-height: 1; }
+    .score-label { font-size: 14px; color: #666; font-weight: 600; margin-top: 4px; }
     .realtime-guide { background: #fff; border-radius: 12px; border: 1px solid #eaeaea; padding: 12px 14px; margin-bottom: 12px; color:#555 !important; font-size: 13px; line-height: 1.5; }
     .chat-box-title { font-size: 13px; font-weight: 700; color: #666 !important; margin: 6px 0 8px 2px; }
     </style>

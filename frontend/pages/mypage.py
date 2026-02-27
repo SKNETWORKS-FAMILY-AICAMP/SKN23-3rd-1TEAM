@@ -51,66 +51,67 @@ html, body, .stApp,
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 .block-container { max-width: 760px !important; padding-top: 1.5rem !important; padding-bottom: 4rem !important; }
-h1, h2, h3, p, div, span, label { color: #333 !important; }
+h1, h2, h3, p, div, span, label { color: #000 !important; }
 
-.hero-title { font-size: 38px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
-.hero-title span { background: linear-gradient(135deg, #bb38d0, #8b1faa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero-subtitle { font-size: 16px; color: #64748b; margin-bottom: 40px; font-weight: 500; }
+.hero-title { font-size: 38px; font-weight: 800; color: #000; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
+.hero-title span { color: #bb38d0; }
+.hero-subtitle { font-size: 16px; color: #666; margin-bottom: 40px; font-weight: 500; }
 
-.page-title { font-size: 38px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
-.page-titlespan { background: linear-gradient(135deg, #bb38d0, #8b1faa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.page-subtitle { font-size: 16px; color: #64748b; margin-bottom: 40px; font-weight: 500; }
-.page-sub   { font-size: 13px; color: #888 !important; margin-bottom: 24px; }
+.page-title { font-size: 38px; font-weight: 800; color: #000; letter-spacing: -0.5px; margin-bottom: 12px; margin-top: 10px; }
+.page-titlespan { color: #bb38d0; }
+.page-subtitle { font-size: 16px; color: #666; margin-bottom: 40px; font-weight: 500; }
+.page-sub   { font-size: 13px; color: #666 !important; margin-bottom: 24px; }
 
 /* ─── 세션 카드 ─── */
 .session-card {
-    background: #fff; border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding: 18px 22px; margin-bottom: 12px;
+    background: #ffffff; border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    padding: 18px 22px; margin-bottom: 12px; border: none;
     border-left: 4px solid #bb38d0;
 }
-.session-title { font-size: 15px; font-weight: 700; color: #333 !important; }
-.session-meta  { font-size: 12px; color: #999 !important; margin-top: 2px; }
+.session-title { font-size: 15px; font-weight: 700; color: #000 !important; }
+.session-meta  { font-size: 12px; color: #666 !important; margin-top: 2px; }
 .score-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #bb38d0, #7b2cb1);
+    background: #bb38d0;
     color: #fff !important; font-size: 13px; font-weight: 700;
-    padding: 3px 12px; border-radius: 20px;
+    padding: 3px 12px; border-radius: 16px;
 }
-.no-score { background: #eee; color: #aaa !important; }
+.no-score { background: #f5f5f5; color: #666 !important; }
 
 /* ─── 상세 카드 ─── */
 .detail-card {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    background: #ffffff; border-radius: 16px; border: none;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
     padding: 16px 20px; margin-bottom: 10px;
 }
 .q-label { font-size: 11px; font-weight: 700; color: #bb38d0 !important; margin-bottom: 4px; }
-.q-text  { font-size: 14px; color: #333 !important; line-height: 1.6; margin-bottom: 10px; }
-.a-label { font-size: 11px; font-weight: 700; color: #555 !important; margin-bottom: 4px; }
-.a-text  { font-size: 14px; color: #444 !important; line-height: 1.6; margin-bottom: 10px; }
+.q-text  { font-size: 14px; color: #000 !important; line-height: 1.6; margin-bottom: 10px; }
+.a-label { font-size: 11px; font-weight: 700; color: #666 !important; margin-bottom: 4px; }
+.a-text  { font-size: 14px; color: #000 !important; line-height: 1.6; margin-bottom: 10px; }
 .feedback-box {
-    background: #f9f0ff; border-radius: 8px;
-    padding: 8px 12px; font-size: 13px; color: #7b2cb1 !important;
-    border-left: 3px solid #bb38d0; margin-top: 6px;
+    background: #ffffff; border-radius: 16px; border: none;
+    padding: 16px 20px; margin-bottom: 10px; font-size: 13px; color: #000 !important;
+    border-left: 3px solid #bb38d0; margin-top: 6px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
 }
 .followup-tag {
-    display: inline-block; background: #fff3e0; color: #e67e22 !important;
+    display: inline-block; background: #fff5e6; color: #d97706 !important;
     font-size: 11px; font-weight: 700; padding: 2px 8px;
-    border-radius: 6px; margin-bottom: 6px;
+    border-radius: 16px; margin-bottom: 6px;
 }
 
 [data-testid="stButton"] > button[kind="primary"] {
-    background: linear-gradient(135deg, #bb38d0, #8b1faa) !important;
+    background: #bb38d0 !important;
     color: #fff !important; border: none !important;
-    border-radius: 10px !important; font-weight: 700 !important;
+    border-radius: 16px !important; font-weight: 700 !important; transition: all 0.2s;
 }
+[data-testid="stButton"] > button[kind="primary"]:hover { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07) !important; transform: translateY(-3px); }
 [data-testid="stButton"] > button:not([kind="primary"]) {
-    background: #fff !important; color: #555 !important;
-    border: 1px solid #ddd !important; border-radius: 10px !important;
-    font-weight: 600 !important;
+    background: #fff !important; color: #666 !important;
+    border: none !important; border-radius: 16px !important;
+    font-weight: 600 !important; box-shadow: 0 4px 24px rgba(0,0,0,0.07) !important;
 }
-hr { border-color: #eee !important; }
+hr { border-color: #f5f5f5 !important; }
 </style>
 """, unsafe_allow_html=True)
 

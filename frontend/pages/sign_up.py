@@ -211,9 +211,9 @@ input[type="text"]:focus, input[type="password"]:focus { border-color: #bb38d0 !
 
 [data-testid="stButton"] > button[kind="primary"] {
     background-color: #bb38d0 !important;
-    color: #fff !important;
+    color: #ffffff !important;
     border: none !important;
-    border-radius: 6px !important;
+    border-radius: 16px !important;
     height: 50px !important;
     font-size: 16px !important;
     font-weight: 700 !important;
