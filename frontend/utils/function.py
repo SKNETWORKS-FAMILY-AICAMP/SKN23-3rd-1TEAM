@@ -14,11 +14,6 @@ from utils.api_utils import api_verify_token
 import time
 import streamlit as st
 import extra_streamlit_components as stx
-# api_verify_token 등은 기존대로 import 하세요
-
-import streamlit as st
-import extra_streamlit_components as stx
-import time
 from utils.api_utils import api_verify_token
 
 def require_login():
@@ -26,20 +21,15 @@ def require_login():
     로그인 상태를 완벽하게 검증하고, 
     새로고침으로 세션이 날아갔다면 쿠키를 통해 자동 복구해주는 완벽한 문지기입니다.
     """
-    # 1. 주머니(세션)에 출입증이 이미 있다면 바로 하이패스 통과! 🏎️
     if "user" in st.session_state and st.session_state.user:
-        # 🔥 id가 혹시 백엔드에서 안 넘어왔더라도 "guest"라는 임시 명찰을 달아주고 무조건 통과시킵니다!
         return st.session_state.user.get("id", "guest")
 
-    # 2. 세션이 비어있다면 (F5 새로고침 등), 쿠키 매니저 소환!
     cookie_manager = stx.CookieManager(key="global_auth_cookie")
     token = cookie_manager.get("access_token")
 
     if token:
-        # 🍪 쿠키가 도착했다면 검증 후 세션 복구!
         is_valid, result = api_verify_token(token)
         if is_valid:
-            # 🔥 여기서도 "user" 딕셔너리 안에 "id"를 예쁘게 담아줍니다.
             st.session_state.user = {
                 "id": result.get("id"),
                 "name": result.get("name"),
@@ -50,7 +40,6 @@ def require_login():
             }
             st.session_state.token = token
             
-            # 다음 번을 위해 체크 상태 초기화
             if "cookie_checking" in st.session_state:
                 del st.session_state["cookie_checking"]
                 
@@ -58,19 +47,17 @@ def require_login():
         else:
             st.warning("세션이 만료되었습니다. 다시 로그인해주세요.")
             time.sleep(1)
-            st.switch_page("app.py") # 🔥 login.py가 아니라 app.py로 안전하게 이동!
+            st.switch_page("app.py") 
             st.stop()
     else:
-        # 🚨 브라우저가 쿠키를 가져올 수 있도록 잠깐 멈춤 (st.stop)
         if "cookie_checking" not in st.session_state:
             st.session_state["cookie_checking"] = True
             st.stop() 
         else:
-            # 재실행됐는데도 토큰이 없다면 진짜 로그아웃 상태
             del st.session_state["cookie_checking"]
-            st.warning("⚠️ 로그인이 필요한 서비스입니다.")
+            st.warning("로그인이 필요한 서비스입니다.")
             time.sleep(1)
-            st.switch_page("app.py") # 🔥 app.py로 이동
+            st.switch_page("app.py") 
             st.stop()
 
 
@@ -113,7 +100,7 @@ def inject_custom_header():
     .header-menu a {{ text-decoration: none; color: #111111; font-size: 16px; font-weight: 600; transition: color 0.2s; }}
     .header-menu a:hover {{ color: #bb38d0; }}
 
-    /* 🔥 오른쪽 유저 드롭다운 메뉴 스타일 */
+    /* 오른쪽 유저 드롭다운 메뉴 스타일 */
     .header-utils {{ display: flex; align-items: center; }}
     
     .header-user-wrap {{ position: relative; display: inline-block; }}
@@ -127,7 +114,7 @@ def inject_custom_header():
         background: #bb38d0; color: #fff; box-shadow: 0 4px 12px rgba(187,56,208,0.25);
     }}
 
-    /* 숨겨진 메뉴창 (마우스 올리면 뿅! 나타납니다) */
+    /* 숨겨진 메뉴창 */
     .header-dropdown {{
         visibility: hidden; opacity: 0; position: absolute; right: 0; top: calc(100% + 10px);
         background-color: #ffffff; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
@@ -149,7 +136,7 @@ def inject_custom_header():
 
     .dropdown-divider {{ height: 1px; background: #f1f3f5; margin: 0; }}
 
-    /* 👻 파이썬 전역 로그아웃 버튼 완벽 숨김 */
+    /* 파이썬 전역 로그아웃 버튼 완벽 숨김 */
     div[data-testid="stElementContainer"]:has(#global-logout-marker),
     div[data-testid="stElementContainer"]:has(#global-logout-marker) + div[data-testid="stElementContainer"] {{
         position: absolute !important; width: 0px !important; height: 0px !important;
@@ -174,7 +161,7 @@ def inject_custom_header():
                     👤 {user_name} 님 ▾
                 </div>
                 <div class="header-dropdown">
-                    <a href="/app" target="_self">로그아웃</a>
+                    <a href="/login" target="_self">로그아웃</a>
                 </div>
             </div>
         </div>
@@ -199,7 +186,7 @@ def inject_custom_header():
             
         st.session_state.clear()
         time.sleep(1) 
-        st.switch_page("app.py")
+        st.switch_page("login")
 
 
 def render_memo_board(current_user_name="익명"):
