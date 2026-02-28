@@ -7,7 +7,8 @@ Description: 마이페이지
 Modification History:
 - 2026-02-24 (김지우): 초기 틀 생성
 - 2026-02-26 (김지우): 전체적인 코드 확인 및 수정 작업
-- 2026-02-27 (김지우): 만능 문지기(require_login) 적용 및 로직 최적화 🚀
+- 2026-02-27 (김지우): 만능 문지기(require_login) 적용 및 로직 최적화
+- 2026-02-28 (김지우): 모달 함수 호이스팅 및 탈퇴 로직 안정화
 """
 import streamlit as st
 import time
@@ -16,80 +17,7 @@ from utils.function import inject_custom_header, require_login
 
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
-# 1. 헤더 그리기
-inject_custom_header()
-
-# 🚨 2. 만능 문지기 출동! (알아서 쿠키 복구하고, 비로그인 유저는 튕겨냄)
-user_id = require_login()
-
-# 3. 마음 편하게 DB 데이터 사용 시작!
-user = st.session_state.user
-user_name = user.get("name", "이름 없음")
-user_email = user.get("email", "이메일 정보 없음") 
-user_tier = user.get("tier", "normal")
-profile_url = user.get("profile_image_url") or "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-
-# ============================================================
-# 💅 CSS 스타일링 (탈퇴버튼 등)
-# ============================================================
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
-* { font-family: 'Pretendard', sans-serif; }
-
-/* 배경 및 기본 설정 */
-[data-testid="stAppViewContainer"] { background-color: #f5f5f5 !important; }
-[data-testid="stHeader"] { display: none; }
-.block-container { max-width: 500px !important; padding: 2rem 1rem !important; }
-
-/* 상단 헤더 */
-.app-header {
-    display: flex; align-items: center; justify-content: center;
-    position: relative; margin-bottom: 30px; padding-bottom: 15px;
-    border-bottom: 1px solid #e9ecef;
-}
-.app-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #000; }
-
-/* 프로필 사진 영역 */
-.profile-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
-.profile-img-circle {
-    width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
-    background-color: #f5f5f5; margin-bottom: 16px; border: 1px solid #e9ecef;
-}
-
-/* 리스트 뷰 (정보 행) */
-.list-row {
-    padding: 16px 0; border-bottom: 1px solid #e9ecef;
-    position: relative; display: flex; flex-direction: column; justify-content: center;
-}
-.list-label { font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500; }
-.list-value { font-size: 16px; color: #000; font-weight: 500; }
-.list-arrow { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 18px; }
-
-/* 하단 탈퇴 버튼을 app.py의 비밀번호 찾기 링크처럼 위장시키는 마법의 CSS */
-.withdraw-wrapper div[data-testid="stButton"] button {
-    background: transparent !important;
-    border: none !important;
-    color: #888 !important;
-    font-size: 13px !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    font-weight: 500 !important;
-    width: auto !important;
-    margin: 0 auto !important;
-    display: block !important;
-}
-.withdraw-wrapper div[data-testid="stButton"] button:hover {
-    color: #bb38d0 !important;
-    text-decoration: underline !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# 팝업(모달) 로직 정의
-# ============================================================
+# 모달 정의
 @st.dialog("프로필 사진 올리기")
 def upload_photo_dialog():
     uploaded_file = st.file_uploader("이미지 파일 선택", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
@@ -103,10 +31,9 @@ def upload_photo_dialog():
                 
                 if is_success:
                     st.session_state.user["profile_image_url"] = result_url_or_msg
-                    
                     st.success("프로필 사진이 변경되었습니다.")
                     time.sleep(1)
-                    st.rerun() # 새로고침
+                    st.rerun() # 새로고침해서 팝업 닫고 사진 적용
                 else:
                     st.error(f"실패: {result_url_or_msg}")
 
@@ -148,35 +75,74 @@ def withdraw_dialog(email):
     col1, col2 = st.columns(2)
     with col1:
         if st.button("아니오", use_container_width=True):
-            st.rerun() 
+            st.rerun() # 팝업 닫기
     with col2:
         if st.button("예", type="primary", use_container_width=True):
             with st.spinner("탈퇴 처리 중..."):
+                # 1. 서버에 탈퇴 요청
                 api_withdraw(email)
                 time.sleep(1.5)
-                st.session_state.clear() 
-                st.switch_page("app.py")
+                # 2. 내 세션(쿠키, 정보) 파괴
+                import extra_streamlit_components as stx
+                cookie_manager = stx.CookieManager(key="global_auth_cookie")
+                try:
+                    cookie_manager.delete("access_token")
+                except:
+                    pass
+                st.session_state.clear()
+                # 3. 팝업만 닫기 (재실행되면 require_login이 알아서 app.py로 쫓아냅니다!)
+                st.rerun()
 
 
-# ==========================================
-# 📱 4. UI 렌더링 시작
-# ==========================================
+# 문지기 검증 및 헤더 렌더링
+user_id = require_login()
+inject_custom_header()
 
-# [헤더]
+user = st.session_state.user
+user_name = user.get("name", "이름 없음")
+user_email = user.get("email", "이메일 정보 없음") 
+user_tier = user.get("tier", "normal")
+profile_url = user.get("profile_image_url") or "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+
+
+# CSS
 st.markdown("""
-<div class="app-header">
-    <h3>내 정보 관리</h3>
-</div>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
+* { font-family: 'Pretendard', sans-serif; }
+
+[data-testid="stAppViewContainer"] { background-color: #f5f5f5 !important; }
+[data-testid="stHeader"] { display: none; }
+.block-container { max-width: 500px !important; padding: 2rem 1rem !important; }
+
+.app-header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef; }
+.app-header h3 { margin: 0; font-size: 18px; font-weight: 600; color: #000; }
+
+.profile-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+.profile-img-circle { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; background-color: #f5f5f5; margin-bottom: 16px; border: 1px solid #e9ecef; }
+
+.list-row { padding: 16px 0; border-bottom: 1px solid #e9ecef; position: relative; display: flex; flex-direction: column; justify-content: center; }
+.list-label { font-size: 12px; color: #666; margin-bottom: 8px; font-weight: 500; }
+.list-value { font-size: 16px; color: #000; font-weight: 500; }
+.list-arrow { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 18px; }
+
+.withdraw-wrapper div[data-testid="stButton"] button {
+    background: transparent !important; border: none !important; color: #888 !important;
+    font-size: 13px !important; box-shadow: none !important; padding: 0 !important;
+    font-weight: 500 !important; width: auto !important; margin: 0 auto !important; display: block !important;
+}
+.withdraw-wrapper div[data-testid="stButton"] button:hover { color: #bb38d0 !important; text-decoration: underline !important; }
+</style>
 """, unsafe_allow_html=True)
 
-# [프로필 사진 영역]
-st.markdown(f"""
-<div class="profile-section">
-    <img src="{profile_url}" class="profile-img-circle">
-</div>
-""", unsafe_allow_html=True)
 
-# 사진 올리기 버튼 (모달 연결)
+# UI 렌더링 시작
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+st.markdown('<div class="app-header"><h3>내 정보 관리</h3></div>', unsafe_allow_html=True)
+
+st.markdown(f'<div class="profile-section"><img src="{profile_url}" class="profile-img-circle"></div>', unsafe_allow_html=True)
+
 col_empty1, col_btn, col_empty2 = st.columns([1, 1, 1])
 with col_btn:
     if st.button("📷 사진 올리기", use_container_width=True):
@@ -184,51 +150,22 @@ with col_btn:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# [정보 리스트 영역 - DB 연동]
-# 1. 가입된 이메일 (DB값)
-st.markdown(f"""
-<div class="list-row">
-    <div class="list-label">가입된 아이디(이메일)</div>
-    <div class="list-value">{user_email}</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f'<div class="list-row"><div class="list-label">가입된 아이디(이메일)</div><div class="list-value">{user_email}</div></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="list-row"><div class="list-label">이름</div><div class="list-value">{user_name}</div></div>', unsafe_allow_html=True)
 
-# 2. 이름 (DB값)
-st.markdown(f"""
-<div class="list-row">
-    <div class="list-label">이름</div>
-    <div class="list-value">{user_name}</div>
-</div>
-""", unsafe_allow_html=True)
-
-# 3. 나의 등급 (DB값, 영롱한 포인트 색상 적용)
 tier_color = "#bb38d0" if user_tier.lower() == "plus" else "#4b5563"
-st.markdown(f"""
-<div class="list-row">
-    <div class="list-label">내 회원 등급</div>
-    <div class="list-value" style="color:{tier_color}; font-weight:700;">{user_tier.upper()} 뱃지 보유</div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(f'<div class="list-row"><div class="list-label">내 회원 등급</div><div class="list-value" style="color:{tier_color}; font-weight:700;">{user_tier.upper()} 뱃지 보유</div></div>', unsafe_allow_html=True)
 
-# 4. 비밀번호 (클릭 시 팝업) - 투명 버튼 덮어씌우기 스킬
-st.markdown("""
-<div class="list-row" style="position:relative;">
-    <div class="list-label">비밀번호 변경</div>
-    <div class="list-value">********</div>
-    <div class="list-arrow">›</div>
-</div>
-""", unsafe_allow_html=True)
+# 비밀번호 변경
+st.markdown('<div class="list-row" style="position:relative;"><div class="list-label">비밀번호 변경</div><div class="list-value">********</div><div class="list-arrow">›</div></div>', unsafe_allow_html=True)
 st.markdown('<div style="margin-top:-60px; height:60px; opacity:0; position:relative; z-index:999;">', unsafe_allow_html=True)
 if st.button("비밀번호버튼", key="pw_btn", use_container_width=True):
     change_password_dialog()
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 🚨 5. 하단 회원 탈퇴 버튼 (app.py 헬퍼 링크 스타일)
+# 회원 탈퇴
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown('<div class="withdraw-wrapper">', unsafe_allow_html=True)
-
-# 버튼 자체가 투명한 링크처럼 보이도록 CSS(.withdraw-wrapper)가 입혀져 있습니다.
 if st.button("회원탈퇴", key="withdraw_link_btn"):
     withdraw_dialog(user_email)
-    
 st.markdown('</div>', unsafe_allow_html=True)

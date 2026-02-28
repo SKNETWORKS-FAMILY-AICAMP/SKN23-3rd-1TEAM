@@ -1,8 +1,13 @@
 ﻿"""
 File: pages/mypage.py
+Author: 김지우
+Created: 2026-02-24
 Description: 면접 기록 조회 페이지
-             - 세션 목록 (최신순)
-             - 세션 클릭 시 질문-답변 상세 + 개별 점수 확인
+
+Modification History:
+- 2026-02-24 (김지우): 초기 틀 생성
+- 2026-02-24 (김지우): 세션 클릭 시 질문-답변 상세 + 개별 점수 확인
+- 2026-02-28 (김지우): 만능 문지기(require_login) 적용 및 로직 최적화
 """
 
 import os
@@ -26,11 +31,10 @@ from utils.function import inject_custom_header, require_login
 load_dotenv()
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
-# 1. 헤더 그리기
+user_id = require_login()
 inject_custom_header()
-# ============================================================
-# 💅 CSS 스타일링
-# ============================================================
+
+# css
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
@@ -115,8 +119,6 @@ st.markdown("<div class='hero-subtitle'>지금까지 진행한 모의 면접 결
 
 st.markdown("---")
 
-# 2. 만능 문지기 출동! (알아서 쿠키 복구하고, 비로그인 유저는 튕겨냄)
-user_id = require_login()
 
 # ─── 세션 목록 조회 ───────────────────────────────────────────
 try:
