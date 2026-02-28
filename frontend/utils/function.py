@@ -11,38 +11,35 @@ import streamlit as st
 from utils.api_utils import api_verify_token
 
 
+import time
+import streamlit as st
+import extra_streamlit_components as stx
+# api_verify_token 등은 기존대로 import 하세요
+
+import streamlit as st
+import extra_streamlit_components as stx
+import time
+from utils.api_utils import api_verify_token
+
 def require_login():
-    """Validate the current login state and recover from cookie when possible."""
-    import extra_streamlit_components as stx
+    """
+    로그인 상태를 완벽하게 검증하고, 
+    새로고침으로 세션이 날아갔다면 쿠키를 통해 자동 복구해주는 완벽한 문지기입니다.
+    """
+    # 1. 주머니(세션)에 출입증이 이미 있다면 바로 하이패스 통과! 🏎️
+    if "user" in st.session_state and st.session_state.user:
+        # 🔥 id가 혹시 백엔드에서 안 넘어왔더라도 "guest"라는 임시 명찰을 달아주고 무조건 통과시킵니다!
+        return st.session_state.user.get("id", "guest")
 
-    if (
-        "user_id" in st.session_state
-        and isinstance(st.session_state["user_id"], int)
-        and "user" in st.session_state
-    ):
-        return st.session_state["user_id"]
-
+    # 2. 세션이 비어있다면 (F5 새로고침 등), 쿠키 매니저 소환!
     cookie_manager = stx.CookieManager(key="global_auth_cookie")
     token = cookie_manager.get("access_token")
-    refresh_token = cookie_manager.get("refresh_token")
-    csrf_token = cookie_manager.get("csrf_token")
-
-    if refresh_token:
-        st.session_state.refresh_token = refresh_token
-    if csrf_token:
-        st.session_state.csrf_token = csrf_token
-
-    if st.session_state.get("token"):
-        cookie_manager.set("access_token", st.session_state.token)
-    if st.session_state.get("refresh_token"):
-        cookie_manager.set("refresh_token", st.session_state.refresh_token)
-    if st.session_state.get("csrf_token"):
-        cookie_manager.set("csrf_token", st.session_state.csrf_token)
 
     if token:
+        # 🍪 쿠키가 도착했다면 검증 후 세션 복구!
         is_valid, result = api_verify_token(token)
         if is_valid:
-            st.session_state["user_id"] = result.get("id")
+            # 🔥 여기서도 "user" 딕셔너리 안에 "id"를 예쁘게 담아줍니다.
             st.session_state.user = {
                 "id": result.get("id"),
                 "name": result.get("name"),
@@ -52,23 +49,29 @@ def require_login():
                 "tier": result.get("tier", "normal"),
             }
             st.session_state.token = token
-            return st.session_state["user_id"]
-
-        st.warning("세션이 만료되었습니다. 다시 로그인해주세요.")
-        time.sleep(1)
-        st.switch_page("pages/login.py")
-        st.stop()
-
-    if "cookie_waiting" not in st.session_state:
-        st.session_state["cookie_waiting"] = True
-        st.spinner("사용자 정보를 불러오는 중입니다...")
-        st.stop()
-
-    del st.session_state["cookie_waiting"]
-    st.warning("로그인이 필요한 서비스입니다.")
-    time.sleep(1.5)
-    st.switch_page("pages/login.py")
-    st.stop()
+            
+            # 다음 번을 위해 체크 상태 초기화
+            if "cookie_checking" in st.session_state:
+                del st.session_state["cookie_checking"]
+                
+            return st.session_state.user["id"]
+        else:
+            st.warning("세션이 만료되었습니다. 다시 로그인해주세요.")
+            time.sleep(1)
+            st.switch_page("app.py") # 🔥 login.py가 아니라 app.py로 안전하게 이동!
+            st.stop()
+    else:
+        # 🚨 브라우저가 쿠키를 가져올 수 있도록 잠깐 멈춤 (st.stop)
+        if "cookie_checking" not in st.session_state:
+            st.session_state["cookie_checking"] = True
+            st.stop() 
+        else:
+            # 재실행됐는데도 토큰이 없다면 진짜 로그아웃 상태
+            del st.session_state["cookie_checking"]
+            st.warning("⚠️ 로그인이 필요한 서비스입니다.")
+            time.sleep(1)
+            st.switch_page("app.py") # 🔥 app.py로 이동
+            st.stop()
 
 
 def get_image_base64(image_path):
@@ -78,85 +81,83 @@ def get_image_base64(image_path):
 
 def inject_custom_header():
     user_info = st.session_state.get("user", {})
-    user_name = user_info.get("name", "사용자")
-
+    user_name = user_info.get("name", "사용자") 
+    
     current_dir = os.path.dirname(os.path.abspath(__file__))
     frontend_root = os.path.dirname(current_dir)
     image_path = os.path.join(frontend_root, "assets", "AIWORK.jpg")
-
+    
     try:
-        img_src = f"data:image/jpeg;base64,{get_image_base64(image_path)}"
+        img_base64 = get_image_base64(image_path)
+        img_src = f"data:image/jpeg;base64,{img_base64}"
     except FileNotFoundError:
         img_src = ""
 
     header_html = f"""
     <style>
-    .block-container {{
-        padding-top: 100px !important;
-    }}
+    /* 상단 여백 조절 */
+    .block-container {{ padding-top: 100px !important; }}
+    
+    /* 헤더 전체 컨테이너 */
     .custom-header {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 72px;
-        background-color: #ffffff;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 40px;
-        border-bottom: 1px solid #e2e8f0;
-        z-index: 999999;
+        position: fixed; top: 0; left: 0; right: 0; height: 72px;
+        background-color: #ffffff; display: flex; align-items: center; justify-content: space-between;
+        padding: 0 40px; border-bottom: 1px solid #e2e8f0; z-index: 999999;
         font-family: 'Pretendard', sans-serif;
     }}
-    .header-logo {{
-        display: flex;
-        align-items: center;
-        text-decoration: none;
+
+    .header-logo {{ display: flex; align-items: center; text-decoration: none; }}
+    .header-logo img {{ height: 28px; width: auto; object-fit: contain; }}
+
+    .header-menu {{ display: flex; gap: 40px; position: absolute; left: 50%; transform: translateX(-50%); }}
+    .header-menu a {{ text-decoration: none; color: #111111; font-size: 16px; font-weight: 600; transition: color 0.2s; }}
+    .header-menu a:hover {{ color: #bb38d0; }}
+
+    /* 🔥 오른쪽 유저 드롭다운 메뉴 스타일 */
+    .header-utils {{ display: flex; align-items: center; }}
+    
+    .header-user-wrap {{ position: relative; display: inline-block; }}
+    
+    .header-user-btn {{
+        background: #fdf4ff; color: #bb38d0; border: 1px solid #fae8ff;
+        padding: 8px 16px; border-radius: 24px; font-size: 14px; font-weight: 700;
+        cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
     }}
-    .header-logo img {{
-        height: 28px;
-        width: auto;
-        object-fit: contain;
+    .header-user-btn:hover {{
+        background: #bb38d0; color: #fff; box-shadow: 0 4px 12px rgba(187,56,208,0.25);
     }}
-    .header-menu {{
-        display: flex;
-        gap: 40px;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
+
+    /* 숨겨진 메뉴창 (마우스 올리면 뿅! 나타납니다) */
+    .header-dropdown {{
+        visibility: hidden; opacity: 0; position: absolute; right: 0; top: calc(100% + 10px);
+        background-color: #ffffff; min-width: 160px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 14px; overflow: hidden; z-index: 9999999; border: 1px solid #f1f3f5;
+        transform: translateY(-10px); transition: all 0.2s ease;
     }}
-    .header-menu a {{
-        text-decoration: none;
-        color: #111111;
-        font-size: 16px;
-        font-weight: 600;
-        transition: color 0.2s;
+    
+    .header-user-wrap:hover .header-dropdown {{
+        visibility: visible; opacity: 1; transform: translateY(0);
     }}
-    .header-menu a:hover {{
-        color: #bb38d0;
+    
+    .header-dropdown a, .header-dropdown-item {{
+        color: #333; padding: 14px 18px; text-decoration: none; display: flex; align-items: center;
+        gap: 10px; font-size: 14px; font-weight: 600; transition: background 0.2s; cursor: pointer;
     }}
-    .header-utils {{
-        display: flex;
-        align-items: center;
+    .header-dropdown a:hover, .header-dropdown-item:hover {{
+        background-color: #fdf4ff; color: #bb38d0;
     }}
-    .icon-group {{
-        display: flex;
-        font-size: 15px;
-        font-weight: 600;
-    }}
-    .icon-group a {{
-        text-decoration: none;
-        color: #333333;
-        transition: transform 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }}
-    .icon-group a:hover {{
-        color: #bb38d0;
+
+    .dropdown-divider {{ height: 1px; background: #f1f3f5; margin: 0; }}
+
+    /* 👻 파이썬 전역 로그아웃 버튼 완벽 숨김 */
+    div[data-testid="stElementContainer"]:has(#global-logout-marker),
+    div[data-testid="stElementContainer"]:has(#global-logout-marker) + div[data-testid="stElementContainer"] {{
+        position: absolute !important; width: 0px !important; height: 0px !important;
+        opacity: 0 !important; overflow: hidden !important; z-index: -9999 !important; pointer-events: none !important;
+        margin: 0 !important; padding: 0 !important;
     }}
     </style>
+    
     <div class="custom-header">
         <a href="/home" target="_self" class="header-logo">
             <img src="{img_src}" alt="AIWORK 로고">
@@ -164,17 +165,41 @@ def inject_custom_header():
         <div class="header-menu">
             <a href="/interview" target="_self">AI면접</a>
             <a href="/resume" target="_self">이력서</a>
-            <a href="/mypage" target="_self">내기록</a>
+            <a href="/mypage" target="_self">내 기록</a>
             <a href="/my_info" target="_self">마이페이지</a>
         </div>
         <div class="header-utils">
-            <div class="icon-group">
-                <a href="/my_info" target="_self" title="마이페이지">👤 {user_name}님 반갑습니다.</a>
+            <div class="header-user-wrap">
+                <div class="header-user-btn">
+                    👤 {user_name} 님 ▾
+                </div>
+                <div class="header-dropdown">
+                    <a href="/app" target="_self">로그아웃</a>
+                </div>
             </div>
         </div>
     </div>
     """
     st.markdown(header_html, unsafe_allow_html=True)
+
+    # 전역 로그아웃 유령 버튼
+    st.markdown('<div id="global-logout-marker"></div>', unsafe_allow_html=True)
+    if st.button("__global_logout__", key="global_logout_trigger"):
+        st.toast("로그아웃 되었습니다.")
+        
+        # 쿠키 삭제 및 세션 초기화
+        import extra_streamlit_components as stx
+        cookie_manager = stx.CookieManager(key="global_header_cookie")
+        try:
+            cookie_manager.delete("access_token")
+            cookie_manager.delete("refresh_token")
+            cookie_manager.delete("csrf_token")
+        except Exception:
+            pass
+            
+        st.session_state.clear()
+        time.sleep(1) 
+        st.switch_page("app.py")
 
 
 def render_memo_board(current_user_name="익명"):

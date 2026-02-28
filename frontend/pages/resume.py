@@ -20,17 +20,16 @@ from utils.api_utils import api_create_resume, api_list_resumes, api_delete_resu
 from utils.function import inject_custom_header, require_login 
 
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
-inject_custom_header()
 
-# 🔥 문지기 정상 작동 복구
+# 🔥 문지기 정상 작동 복구 (헤더 그리기 전 무조건 먼저 실행!)
 user_id = require_login()
+inject_custom_header()
 
 
 # ============================================================
 # 💅 CSS 스타일링
 # ============================================================
-st.markdown(
-    """
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
 html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pretendard', sans-serif; color: #000; }
@@ -46,10 +45,10 @@ html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pret
     background: #ffffff; border-radius: 16px; padding: 24px;
     border: none; border-left: 5px solid #bb38d0;
     box-shadow: 0 4px 24px rgba(0,0,0,0.07); transition: all 0.2s;
-    height: 100%;
+    height: 100%; display: flex; flex-direction: column; justify-content: space-between;
 }
 .resume-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border-color: #d8b4e2; }
-.r-title { font-size: 18px; font-weight: 800; color: #000; margin-bottom: 6px; }
+.r-title { font-size: 18px; font-weight: 800; color: #000; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .r-role { display: inline-block; background: #fdf4ff; color: #bb38d0; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 16px; margin-bottom: 12px; }
 .r-date { font-size: 13px; color: #666; margin-bottom: 16px; }
 
@@ -57,8 +56,8 @@ html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pret
 .new-resume-card {
     background: transparent; border-radius: 16px; padding: 24px;
     border: 2px dashed #bb38d0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; height: 100%;
-    cursor: pointer; transition: all 0.2s; text-align: center; min-height: 180px;
+    align-items: center; justify-content: center; height: 100%; min-height: 200px;
+    cursor: pointer; transition: all 0.2s; text-align: center;
 }
 .new-resume-card:hover { border-color: #872a96; background: rgba(253, 244, 255, 0.5); }
 .new-icon { font-size: 30px; margin-bottom: 10px; }
@@ -70,7 +69,7 @@ html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pret
 .badge-container { display: flex; flex-wrap: wrap; gap: 10px; }
 .tech-badge { background: #f5f5f5; color: #000; padding: 10px 20px; border-radius: 16px; font-size: 14.5px; font-weight: 700; border: none; }
 .progress-bg { background-color: #f5f5f5; border-radius: 16px; height: 16px; width: 100%; overflow: hidden; position: relative; margin-top: 10px; }
-.progress-fill { background: #bb38d0; height: 100%; border-radius: 16px; }
+.progress-fill { background: #bb38d0; height: 100%; border-radius: 16px; transition: width 1s ease-in-out; }
 .match-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
 .match-score { font-size: 34px; font-weight: 800; color: #bb38d0; line-height: 1; }
 .match-feedback { margin-top: 24px; font-size: 15px; color: #666; line-height: 1.6; background: #ffffff; padding: 18px 20px; border-radius: 16px; border-left: 5px solid #bb38d0; font-weight: 500; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); }
@@ -83,16 +82,18 @@ html, body, p, div, h1, h2, h3, h4, h5, h6, span, label, li { font-family: 'Pret
 [data-testid="stExpander"] { background-color: #ffffff; border-radius: 16px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
 [data-testid="stExpander"] summary p { font-weight: 700; color: #000; font-size: 15px; }
 hr { border-color: #e2e8f0 !important; margin: 2rem 0 !important; border-width: 2px !important; }
+
+/* 휴지통 버튼 투명화 */
+.delete-btn-wrapper button { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; font-size: 18px !important; }
+.delete-btn-wrapper button:hover { transform: scale(1.1); color: #ef4444 !important; }
 </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 
-# ─── 헬퍼 함수 (파일 읽기 버그 완벽 수정) ───
+# ─── 헬퍼 함수 ───
 def extract_resume_text(uploaded_file) -> str:
     # 🚨 파일을 딱 한 번만 읽어서 변수에 고정 (두 번 읽어서 날아가는 현상 방지)
-    file_bytes = uploaded_file.read()
+    file_bytes = uploaded_file.getvalue() # read() 대신 getvalue() 사용 권장
     try:
         import fitz
         doc = fitz.open(stream=file_bytes, filetype="pdf")
@@ -109,67 +110,61 @@ if "selected_resume" not in st.session_state:
     st.session_state.selected_resume = None
 
 
-# 팝업 모달: 새 이력서 등록
+# ============================================================
+# 팝업 모달: 새 이력서 등록 (로직 완벽 분리!)
+# ============================================================
 @st.dialog("새 이력서 등록 및 AI 분석", width="large")
 def setup_modal():
-    st.markdown(
-        "<p style='color:#64748b; font-size:15px; margin-bottom:20px;'>이력서를 업로드하면 AI가 분석하여 보관함에 영구 저장합니다.</p>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<p style='color:#64748b; font-size:15px; margin-bottom:20px;'>이력서를 업로드하면 AI가 분석하여 보관함에 영구 저장합니다.</p>", unsafe_allow_html=True)
 
     selected_role = st.selectbox(
         "이 이력서는 어떤 직무용인가요?",
-        [
-            "Python 백엔드 개발자",
-            "Java 백엔드 개발자",
-            "AI/ML 엔지니어",
-            "데이터 엔지니어",
-            "프론트엔드 개발자",
-        ],
+        ["Python 백엔드 개발자", "Java 백엔드 개발자", "AI/ML 엔지니어", "데이터 엔지니어", "프론트엔드 개발자"]
     )
-    uploaded_file = st.file_uploader("PDF 이력서를 올려주세요", type=["pdf", "txt"])
+    
+    # 🔥 Form을 사용하여 업로드와 버튼 클릭이 한 세트로 묶이게 만듭니다.
+    with st.form("resume_upload_form"):
+        uploaded_file = st.file_uploader("PDF 이력서를 올려주세요", type=["pdf", "txt"])
+        submit_btn = st.form_submit_button("분석하기", type="primary", use_container_width=True)
+        
+        if submit_btn:
+            if not uploaded_file:
+                st.warning("이력서 파일을 업로드해주세요!")
+            else:
+                with st.spinner("AI가 이력서를 꼼꼼히 분석하고 있습니다... (약 10초~20초 소요)"):
+                    resume_text = extract_resume_text(uploaded_file)
+                    
+                    if not resume_text:
+                        st.error("이력서에서 텍스트를 추출할 수 없습니다. 정상적인 PDF/TXT 파일인지 확인해주세요.")
+                        time.sleep(2)
+                        st.rerun()
 
-    if st.button("분석하기", type="primary", use_container_width=True):
-        if not uploaded_file:
-            st.warning("이력서 파일을 업로드해주세요!")
-        else:
-            with st.spinner("AI가 이력서를 꼼꼼히 분석하고 있습니다... (약 10초~20초 소요)"):
-                resume_text = extract_resume_text(uploaded_file)
-                
-                if not resume_text:
-                    st.error("이력서에서 텍스트를 추출할 수 없습니다. 정상적인 PDF/TXT 파일인지 확인해주세요.")
-                    time.sleep(2)
-                    st.rerun()
-
-                ok, result = api_create_resume(
-                    user_id=user_id,
-                    title=uploaded_file.name,
-                    job_role=selected_role,
-                    resume_text=resume_text,
-                )
-                if not ok:
-                    st.error(result)
-                    time.sleep(2)
-                    st.rerun()
-                
-                # 🔥 눈 깜짝할 새 사라지는 toast 대신 확실한 성공 알림 및 대기 시간 부여
-                st.success("🎉 분석 완료! 이력서가 보관함에 안전하게 저장되었습니다.")
-                time.sleep(1.5)  
-                st.rerun()  
+                    ok, result = api_create_resume(
+                        user_id=user_id,
+                        title=uploaded_file.name,
+                        job_role=selected_role,
+                        resume_text=resume_text,
+                    )
+                    if not ok:
+                        st.error(result)
+                        time.sleep(2)
+                        st.rerun()
+                    
+                    st.success("🎉 분석 완료! 이력서가 보관함에 안전하게 저장되었습니다.")
+                    time.sleep(1.5)  
+                    st.rerun()  
 
 
+# ============================================================
 # 화면 UI 구현
+# ============================================================
 
 # ─── 상태 1: 이력서 보관함 (리스트 뷰) ───
 if st.session_state.selected_resume is None:
-    st.markdown(
-        "<div class='hero-title'>내 이력서 <span>보관함</span></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<div class='hero-subtitle'>저장된 이력서를 선택하여 AI 딥섹션 결과를 확인하고 모의면접을 시작하세요.</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<div class='hero-title'>내 이력서 <span>보관함</span></div>", unsafe_allow_html=True)
+    st.markdown("<div class='hero-subtitle'>저장된 이력서를 선택하여 AI 딥섹션 결과를 확인하고 모의면접을 시작하세요.</div>", unsafe_allow_html=True)
+    st.markdown("---")
 
     # API에서 내 이력서 목록 가져오기
     ok, result = api_list_resumes(user_id)
@@ -178,19 +173,17 @@ if st.session_state.selected_resume is None:
         st.stop()
     saved_resumes = result.get("items", [])
 
-    # Grid 레이아웃 (3열)
+    # 🔥 리스트 렌더링 방식 수정 (버튼 클릭 방해 요인 제거)
     cols = st.columns(3, gap="medium")
-
+    
     # [1] 첫 번째 칸: "새 이력서 등록" 버튼 (모달 호출)
     with cols[0]:
         st.markdown("<div class='new-resume-card'>", unsafe_allow_html=True)
-        if st.button(
-            "➕\n\n등록하기", use_container_width=True, key="btn_new_resume"
-        ):
+        if st.button("➕\n\n새 이력서 등록", use_container_width=True, key="btn_new_resume"):
             setup_modal()
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # [2] 저장된 이력서들 렌더링
+    # [2] 저장된 이력서들 렌더링 (col_idx를 1부터 시작하여 밀림 방지)
     for i, r in enumerate(saved_resumes):
         col_idx = (i + 1) % 3
         with cols[col_idx]:
@@ -200,55 +193,54 @@ if st.session_state.selected_resume is None:
                 if isinstance(created_at, str)
                 else created_at.strftime("%Y.%m.%d")
             )
-            match_rate = (
-                r["analysis_result"].get("match_rate", 0) if r["analysis_result"] else 0
-            )
+            match_rate = r["analysis_result"].get("match_rate", 0) if r["analysis_result"] else 0
 
-            st.markdown(
-                f"""
+            # 카드 HTML 컨테이너
+            st.markdown(f"""
             <div class='resume-card'>
-                <div class='r-role'>{r['job_role']}</div>
-                <div class='r-title'>{r['title']}</div>
-                <div class='r-date'>등록일: {date_str} | 적합도: {match_rate}%</div>
+                <div>
+                    <div class='r-role'>{r['job_role']}</div>
+                    <div class='r-title' title='{r['title']}'>{r['title']}</div>
+                    <div class='r-date'>등록일: {date_str} &nbsp;|&nbsp; 적합도: <b>{match_rate}%</b></div>
+                </div>
             </div>
-            """,
-                unsafe_allow_html=True,
-            )
-
-            # 카드 아래 액션 버튼들
-            c1, c2 = st.columns([3, 1])
+            """, unsafe_allow_html=True)
+            
+            # 🚨 버튼은 HTML 밖(Streamlit 영역)으로 빼내어 클릭이 무조건 동작하도록 보장
+            c1, c2 = st.columns([4, 1])
             with c1:
-                if st.button(
-                    "대시보드 보기", key=f"view_{r['id']}", use_container_width=True
-                ):
+                # 버튼을 약간 위로 끌어올려서 카드 안에 들어간 것처럼 눈속임 CSS 적용
+                st.markdown("<div style='margin-top:-60px;'>", unsafe_allow_html=True)
+                if st.button("AI 대시보드 열기", key=f"view_{r['id']}", use_container_width=True):
                     st.session_state.selected_resume = r
                     st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
             with c2:
-                if st.button("🗑️", key=f"del_{r['id']}"):
+                st.markdown("<div class='delete-btn-wrapper' style='margin-top:-60px;'>", unsafe_allow_html=True)
+                if st.button("🗑️", key=f"del_{r['id']}", help="이력서 삭제"):
                     api_delete_resume(r["id"])
                     st.rerun()
+                st.markdown("</div>", unsafe_allow_html=True)
+
 
 # ─── 상태 2: 이력서 상세 대시보드 뷰 ───
 else:
     r = st.session_state.selected_resume
-    data = r["analysis_result"]
-    target_role = r["job_role"]
+    data = r.get("analysis_result", {})
+    target_role = r.get("job_role", "직무 미상")
 
-    # 상단 내비게이션
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # 상단 내비게이션 (뒤로 가기)
     col_back, col_title = st.columns([1, 6])
     with col_back:
         if st.button("← 보관함으로", use_container_width=True):
             st.session_state.selected_resume = None
             st.rerun()
 
-    st.markdown(
-        f"<div class='hero-title'>AI 이력서 <span>Deep Analysis</span></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        f"<div class='hero-subtitle'><b>{r['title']}</b> ({target_role}) 분석 결과입니다.</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"<div class='hero-title'>AI 이력서 <span>Deep Analysis</span></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='hero-subtitle'><b>{r['title']}</b> ({target_role}) 분석 결과입니다.</div>", unsafe_allow_html=True)
+    st.markdown("---")
 
     col_l, col_r = st.columns([1, 1.2], gap="large")
 
@@ -273,24 +265,16 @@ else:
     with col_r:
         questions = data.get("expected_questions", [])
         q_boxes_html = "".join(
-            [
-                f"<div class='q-box'><div class='q-num'>Point {i+1}</div><div class='q-text'>{q}</div></div>"
-                for i, q in enumerate(questions)
-            ]
+            [f"<div class='q-box'><div class='q-num'>Point {i+1}</div><div class='q-text'>{q}</div></div>" for i, q in enumerate(questions)]
         )
-        no_questions_html = (
-            "<div style='color:#94a3b8;'>질문을 생성하지 못했습니다.</div>"
-        )
+        no_questions_html = "<div style='color:#94a3b8;'>질문을 생성하지 못했습니다.</div>"
+        
         st.markdown(
-            f"<div class='premium-card' style='border-left: 5px solid #bb38d0;'><div class='card-header'>면접관의 예상 압박 포인트 TOP 3</div>{q_boxes_html if q_boxes_html else no_questions_html}</div>",
+            f"<div class='premium-card' style='border-left: 5px solid #bb38d0;'><div class='card-header'>면접관의 예상 압박 포인트 TOP</div>{q_boxes_html if q_boxes_html else no_questions_html}</div>",
             unsafe_allow_html=True,
         )
 
-        if st.button(
-            "이 이력서로 모의면접 바로 시작하기",
-            type="primary",
-            use_container_width=True,
-        ):
+        if st.button("이 이력서로 모의면접 바로 시작하기", type="primary", use_container_width=True):
             # 면접 페이지에서 사용할 수 있도록 세션 세팅
             st.session_state.job_role = target_role
             st.session_state.resume_text = r["resume_text"]
@@ -300,9 +284,4 @@ else:
 
         st.markdown("<br>", unsafe_allow_html=True)
         with st.expander("추출된 이력서 텍스트 원본 확인"):
-            st.text_area(
-                "수정이 불가능한 읽기 전용 텍스트입니다.",
-                r["resume_text"],
-                height=200,
-                disabled=True,
-            )
+            st.text_area("수정이 불가능한 읽기 전용 텍스트입니다.", r["resume_text"], height=200, disabled=True)

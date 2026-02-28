@@ -14,6 +14,7 @@ Modification History:
 - 2026-02-23 (김지우): 휴면 계정 복구 모달(Popup) 로직 수정
 - 2026-02-23 (김지우): 마이페이지 연동을 위해 로그인 성공 시 세션에 email, tier 정보 추가
 - 2026-02-25 (김지우): 쿠키 기반 자동 로그인(Route Protection) 로직 추가 및 경고창 픽스
+- 2026-02-28 (김지우): 자동로그인 및 일반 로그인 시 세션 id 누락 수정 및 쿠키 타이밍 이슈 픽스 🚀
 """
 import streamlit as st
 import time
@@ -27,9 +28,9 @@ from utils.config import GOOGLE_URI, KAKAO_URI
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
 
-# 쿠키 매니저 세팅 (경고창 없는 세션 방식 적용)
+# 쿠키 매니저 세팅
 if "cookie_manager" not in st.session_state:
-    st.session_state.cookie_manager = stx.CookieManager()
+    st.session_state.cookie_manager = stx.CookieManager(key="login_cookie_mgr")
 
 cookie_manager = st.session_state.cookie_manager
 refresh_token_cookie = cookie_manager.get("refresh_token")
@@ -40,7 +41,6 @@ if csrf_token_cookie:
     st.session_state.csrf_token = csrf_token_cookie
 
 
-# 자동 로그인 로직
 # 자동 로그인 로직
 access_token = cookie_manager.get("access_token")
 
@@ -54,8 +54,9 @@ if access_token:
             cookie_manager.set("refresh_token", st.session_state.refresh_token, key="refresh_refresh_cookie")
         if st.session_state.get("csrf_token"):
             cookie_manager.set("csrf_token", st.session_state.csrf_token, key="refresh_csrf_cookie")
-        st.session_state["user_id"] = result.get("id")
+        
         st.session_state.user = {
+            "id": result.get("id"),
             "name": result.get("name") or "사용자",
             "role": result.get("role") or "user",
             "profile_image_url": result.get("profile_image_url"),
@@ -159,18 +160,17 @@ def dormant_recovery_modal(email, password):
                         st.session_state.refresh_token = login_result.get("refresh_token")
                         st.session_state.csrf_token = login_result.get("csrf_token")
                         
-                        # 쿠키에 토큰 영구 저장
                         cookie_manager.set("access_token", login_result.get("access_token"), key="set_token_dormant")
                         cookie_manager.set("refresh_token", login_result.get("refresh_token"), key="set_refresh_dormant")
                         cookie_manager.set("csrf_token", login_result.get("csrf_token"), key="set_csrf_dormant")
-                        
-                        st.session_state["user_id"] = login_result.get("id")  # 추가함 ^^
 
                         st.session_state.user = {
+                            "id": login_result.get("id"),
                             "name": login_result.get("name"),
                             "role": login_result.get("role"),
                             "profile_image_url": login_result.get("profile_image_url"),
                         }
+                        time.sleep(0.5) # 쿠키 저장 대기
                         st.switch_page("pages/home.py")
                     else:
                         st.error("자동 로그인에 실패했습니다. 창을 닫고 다시 로그인해주세요.")
@@ -191,17 +191,15 @@ if social_token:
 
     ok, result = api_verify_token(social_token)
     if ok:
-        # 소셜 로그인 시에도 쿠키 발급
         cookie_manager.set("access_token", social_token, key="set_token_social")
-        
-        st.session_state["user_id"] = result.get("id")  # 추가함 ^^
-
         st.session_state.user = {
+            "id": result.get("id"),
             "name": result.get("name") or "사용자",
             "role": result.get("role") or "user",
             "profile_image_url": result.get("profile_image_url"),
         }
         st.query_params.clear()
+        time.sleep(0.5) # 쿠키 저장 대기
         st.switch_page("pages/home.py")
     else:
         st.session_state.token = None
@@ -209,7 +207,7 @@ if social_token:
         st.query_params.clear()
 
 if st.query_params.get("logout") == "true":
-    cookie_manager.delete("access_token") # 로그아웃 시 쿠키도 없애기
+    cookie_manager.delete("access_token")
     st.session_state.clear()
     st.query_params.clear()
     time.sleep(0.1)
@@ -294,14 +292,15 @@ if not st.session_state.get("show_admin_choice"):
                     st.session_state.refresh_token = result.get("refresh_token")
                     st.session_state.csrf_token = result.get("csrf_token")
                     
-                    # 로그인 성공 시 브라우저 쿠키에 토큰을 구움
                     cookie_manager.set("access_token", result.get("access_token"), key="set_token_normal")
                     cookie_manager.set("refresh_token", result.get("refresh_token"), key="set_refresh_normal")
                     cookie_manager.set("csrf_token", result.get("csrf_token"), key="set_csrf_normal")
                     
-                    st.session_state["user_id"] = result.get("id")  # 추가함 ^^
-
+                    # ==========================================
+                    # 🚨 2. 일반 로그인 로직 수정 (user id 포함)
+                    # ==========================================
                     st.session_state.user = {
+                        "id": result.get("id"),
                         "name": result.get("name"),
                         "role": result.get("role"),
                         "profile_image_url": result.get("profile_image_url"),
@@ -313,6 +312,7 @@ if not st.session_state.get("show_admin_choice"):
                         st.session_state.show_admin_choice = True
                         st.rerun()
                     else:
+                        time.sleep(0.5) # 🔥 쿠키가 저장될 시간을 0.5초 벌어줍니다!
                         st.switch_page("pages/home.py")
                 else:
                     if "휴면" in result:
