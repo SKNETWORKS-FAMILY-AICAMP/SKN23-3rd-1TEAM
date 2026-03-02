@@ -36,6 +36,10 @@ def on_startup():
 
 app.include_router(auth.router)
 app.include_router(social_auth.router)
+app.add_api_route("/api/v1/auth/kakao/start", social_auth.kakao_start, methods=["GET"], tags=["social-auth"])
+app.add_api_route("/api/v1/auth/kakao/callback", social_auth.kakao_callback, methods=["GET"], tags=["social-auth"])
+app.add_api_route("/api/v1/auth/google/start", social_auth.google_start, methods=["GET"], tags=["social-auth"])
+app.add_api_route("/api/v1/auth/google/callback", social_auth.google_callback, methods=["GET"], tags=["social-auth"])
 app.include_router(admin.router)
 app.include_router(home.router)
 app.include_router(infer.router)
