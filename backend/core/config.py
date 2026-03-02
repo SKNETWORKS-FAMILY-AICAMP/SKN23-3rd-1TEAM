@@ -17,7 +17,7 @@ _ENV_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 load_dotenv(_ENV_FILE, override=True)
 
 class Settings(BaseModel):
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "").strip()
     SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-super-long-random")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_MINUTES: int = 30
@@ -50,11 +50,17 @@ class Settings(BaseModel):
 
     @property
     def KAKAO_REDIRECT_URI(self) -> str:
-        return f"{self.BACKEND_BASE_URL}/api/auth/kakao/callback"
+        return os.getenv(
+            "KAKAO_REDIRECT_URI",
+            f"{self.BACKEND_BASE_URL}/api/auth/kakao/callback",
+        )
 
     @property
     def GOOGLE_REDIRECT_URI(self) -> str:
-        return f"{self.BACKEND_BASE_URL}/api/auth/google/callback"
+        return os.getenv(
+            "GOOGLE_REDIRECT_URI",
+            f"{self.BACKEND_BASE_URL}/api/auth/google/callback",
+        )
 
     @property
     def NAVER_REDIRECT_URI(self) -> str:

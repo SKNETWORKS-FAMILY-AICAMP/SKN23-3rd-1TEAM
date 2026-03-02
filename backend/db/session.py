@@ -14,6 +14,9 @@ from sqlalchemy.orm import sessionmaker
 from backend.core.config import settings  # 기존 설정 파일 유지
 
 # 1. DB 엔진 설정 (SQLite 및 MySQL/PostgreSQL 호환 로직 유지)
+if not settings.DATABASE_URL:
+    raise ValueError("DATABASE_URL is required")
+
 connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, future=True)
 
