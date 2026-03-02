@@ -223,7 +223,7 @@ def dormant_recovery_modal(email, password):
 if "token" not in st.session_state:
     st.session_state.token = None
 
-social_token = st.query_params.get("access_token")
+social_token = st.query_params.get("access_token") or st.session_state.get("social_login_token")
 if social_token:
     st.session_state.token = social_token
     st.session_state.new_token = social_token
@@ -237,12 +237,16 @@ if social_token:
             "role": result.get("role") or "user",
             "profile_image_url": result.get("profile_image_url"),
         }
+        st.session_state.pop("social_login_token", None)
+        st.session_state.pop("social_login_provider", None)
         st.query_params.clear()
         time.sleep(0.5)  # 쿠키 저장 대기
         st.switch_page("pages/home.py")
     else:
         st.session_state.token = None
         st.session_state.user = None
+        st.session_state.pop("social_login_token", None)
+        st.session_state.pop("social_login_provider", None)
         st.query_params.clear()
 
 
