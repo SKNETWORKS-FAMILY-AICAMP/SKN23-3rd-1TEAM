@@ -104,8 +104,6 @@ st.markdown(
     }
     button[kind="primary"] p, button[kind="primary"] span,
     [data-testid="stButton"] > button[kind="primary"] p { color: #fff !important; }
-    .header-end-btn, .header-end-btn * { color: #fff !important; }
-    .header-badge { color: #fff !important; }
 
     /* === 테이블/데이터프레임 === */
     [data-testid="stDataFrame"], [data-testid="stDataFrame"] > div, [data-testid="stDataFrame"] iframe,
@@ -121,30 +119,6 @@ st.markdown(
     .score-circle { width: 140px; height: 140px; border-radius: 50%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 4px 24px rgba(0,0,0,0.07); border: 4px solid #bb38d0; }
     .score-number { font-size: 40px; font-weight: 900; color: #bb38d0; line-height: 1; }
     .score-label { font-size: 14px; color: #666; font-weight: 600; margin-top: 4px; }
-
-    /* 프리미엄 채팅 헤더 */
-    .premium-chat-header {
-        display: flex; justify-content: space-between; align-items: center;
-        background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 100%);
-        border: 1px solid #fae8ff; border-radius: 20px; padding: 16px 24px;
-        box-shadow: 0 10px 30px rgba(187, 56, 208, 0.08);
-        margin-bottom: 16px; margin-top: 20px;
-    }
-    .header-left { display: flex; align-items: center; gap: 16px; }
-    .header-icon {
-        font-size: 28px; background: #ffffff; width: 52px; height: 52px; border-radius: 16px;
-        display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(187, 56, 208, 0.15);
-    }
-    .header-text-info { display: flex; flex-direction: column; }
-    .header-name { font-size: 18px; font-weight: 800; color: #111; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-    .header-badge { font-size: 12px; background: #bb38d0; color: #fff; padding: 3px 10px; border-radius: 12px; font-weight: 700; }
-    .header-desc { font-size: 13px; color: #666; font-weight: 600; }
-    .header-end-btn {
-        background: linear-gradient(135deg, #bb38d0 0%, #872a96 100%);
-        color: white; font-size: 14px; font-weight: 800; border: none; border-radius: 12px; padding: 12px 20px;
-        cursor: pointer; box-shadow: 0 8px 20px rgba(187, 56, 208, 0.25); transition: all 0.2s ease;
-    }
-    .header-end-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(187, 56, 208, 0.4); }
 
     /* 채팅 입력창 */
     div[data-testid="stChatInput"] { 
@@ -210,11 +184,6 @@ st.markdown(
         color: #ffffff !important; 
         width: 18px !important; 
         height: 18px !important; 
-    }
-    @media (max-width: 768px) {
-        .premium-chat-header { flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 16px; }
-        .header-end-btn { width: 100%; text-align: center; padding: 10px 16px; }
-        div[data-testid="stChatInput"] { border-radius: 18px !important; }
     }
     </style>
     """,
@@ -323,7 +292,6 @@ def process_answer(answer_text: str) -> bool:
         success = False
         result = str(e)
 
-    # 에러가 나면 메시지를 띄우고 "False"를 반환하여 rerun을 막음
     if not success:
         st.session_state.messages.pop()
         st.error(f"답변 처리 실패 (서버 로그를 확인하세요): {result}")
@@ -378,7 +346,7 @@ def process_answer(answer_text: str) -> bool:
     if tts:
         st.session_state.latest_audio_content = tts
 
-    return True  # 정상 완료 시 True 반환
+    return True  
 
 
 # 상태 초기화
@@ -408,7 +376,7 @@ for k, v in defaults.items():
 
 
 # 팝업(모달) 선언
-@st.dialog("면접 결과 리포트")
+@st.dialog("면접 결과 리포트", width="large")
 def evaluation_modal():
     scores = st.session_state.db_scores
     total_score = round((sum(scores) / len(scores)) * 10, 1) if scores else 0.0
@@ -449,14 +417,21 @@ def evaluation_modal():
                 st.session_state.get("difficulty"),
                 eval_resume_text,
             )
-
             import re
-
             st.session_state.evaluation_result = re.sub(
                 r"\*\*[\d\.]+\s*/\s*100점\*\*", f"**{total_score} / 100점**", raw_eval
             )
 
     st.markdown(st.session_state.evaluation_result)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.download_button(
+        label="📄 결과 리포트 저장 (TXT)",
+        data=st.session_state.evaluation_result,
+        file_name=f"interview_report.txt",
+        mime="text/plain",
+        use_container_width=True
+    )
 
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -679,13 +654,11 @@ def interview_setup_modal():
                     if expected_qs and len(expected_qs) > 0:
                         remain_count = q_count - 1
 
-                        # 이력서(AI) 질문과 직무 스택(DB) 랜덤 질문의 비율을 반반씩 혼합 (홀수면 이력서 1개 추가)
                         tech_count = remain_count // 2
                         resume_count = remain_count - tech_count
 
                         resume_qs_subset = expected_qs[:resume_count]
 
-                        # DB에서 기술 질문 가져오기
                         tech_qs_data = get_questions_by_role(
                             job_role, difficulty, limit=tech_count
                         )
@@ -693,7 +666,6 @@ def interview_setup_modal():
                             q["question"] for q in tech_qs_data if "question" in q
                         ]
 
-                        # 만약 랜덤 기술 질문이 부족할 경우 남은 만큼 이력서 질문으로 메우기
                         if len(tech_qs) < tech_count:
                             shortfall = tech_count - len(tech_qs)
                             resume_qs_subset = expected_qs[: resume_count + shortfall]
@@ -741,7 +713,7 @@ def interview_setup_modal():
         st.rerun()
 
 
-# 메인 로직
+# 메인 로직 시작
 
 if not st.session_state.chatbot_started:
     st.markdown("<br><br><br>", unsafe_allow_html=True)
@@ -752,48 +724,47 @@ if not st.session_state.chatbot_started:
     interview_setup_modal()
     st.stop()
 
+# 모달 호출은 여기서 대기 (이후 로직이 멈춤)
 if st.session_state.interview_ended:
     evaluation_modal()
     st.stop()
 
-st.markdown(
-    """
-    <div id="end-interview-marker"></div>
-    <style>
-    div[data-testid="stElementContainer"]:has(#end-interview-marker) + div[data-testid="stElementContainer"] {
-        position: absolute !important; width: 0px !important; height: 0px !important; opacity: 0 !important;
-        overflow: hidden !important; z-index: -9999 !important; pointer-events: none !important; margin: 0 !important; padding: 0 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-if st.button("__hidden_end_btn__", key="hidden_end_trigger"):
-    st.session_state.interview_ended = True
-    st.rerun()
 
-st.markdown(
-    f"""
-    <div class="premium-chat-header">
-        <div class="header-left">
-            <div class="header-icon">👾</div>
-            <div class="header-text-info">
-                <div class="header-name">AI 면접관 <span class="header-badge">{st.session_state.persona_style}</span></div>
-                <div class="header-desc">{st.session_state.job_role} · 난이도 {st.session_state.difficulty} · {st.session_state.q_count}문항</div>
+# 🎯 100% 무조건 작동하는 Native Streamlit 헤더 레이아웃
+col_h1, col_h2 = st.columns([5, 1], vertical_alignment="center")
+
+with col_h1:
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 100%); border: 1px solid #fae8ff; border-radius: 20px; padding: 16px 24px; box-shadow: 0 10px 30px rgba(187, 56, 208, 0.08); display: flex; align-items: center; gap: 16px; margin-top: 10px; margin-bottom: 10px;">
+            <div style="font-size: 28px; background: #ffffff; width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(187, 56, 208, 0.15);">👾</div>
+            <div style="display: flex; flex-direction: column;">
+                <div style="font-size: 18px; font-weight: 800; color: #111; display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">AI 면접관 <span style="font-size: 12px; background: #bb38d0; color: #fff; padding: 3px 10px; border-radius: 12px; font-weight: 700;">{st.session_state.persona_style}</span></div>
+                <div style="font-size: 13px; color: #666; font-weight: 600;">{st.session_state.job_role} · 난이도 {st.session_state.difficulty} · {st.session_state.q_count}문항</div>
             </div>
         </div>
-        <button class="header-end-btn" onclick="
-            const btns = window.parent.document.querySelectorAll('button');
-            for(let b of btns) {{
-                if(b.textContent.includes('__hidden_end_btn__')) {{
-                    b.click(); break;
-                }}
-            }}
-        ">면접 종료 ➔</button>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+        """,
+        unsafe_allow_html=True,
+    )
+
+with col_h2:
+    st.markdown(
+        """
+        <style>
+        /* 🎯 네이티브 버튼을 헤더 높이에 맞게 크고 예쁘게 튜닝 */
+        div[data-testid="stColumn"]:nth-child(2) button {
+            height: 64px !important;
+            font-size: 15px !important;
+            margin-top: 10px !important;
+        }
+        </style>
+        """, 
+        unsafe_allow_html=True
+    )
+    if st.button("면접 종료 ➔", type="primary", use_container_width=True):
+        st.session_state.interview_ended = True
+        st.rerun()
+
 
 # 텍스트 모드
 if st.session_state.interview_mode == "text":
@@ -894,10 +865,8 @@ if st.session_state.interview_mode == "text":
     prompt = st.chat_input("메시지를 입력하세요")
     if prompt:
         with st.spinner("답변을 분석 중입니다..."):
-            # 에러가 나면 False를 반환하여 화면 새로고침(rerun)을 막고 에러 메시지를 띄움
             is_success = process_answer(prompt)
 
-        # 성공했을 때만 다음 턴으로 넘어가기 위해 화면을 새로고침
         if is_success:
             st.rerun()
 
@@ -1614,6 +1583,5 @@ else:
         components.html(html, height=680, scrolling=False)
         st.markdown("<br>", unsafe_allow_html=True)
 
-    _, col2 = st.columns([3, 2])
-    with col2:
+    with col_cam:
         webcam_box(height=606)
