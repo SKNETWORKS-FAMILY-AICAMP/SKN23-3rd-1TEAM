@@ -396,6 +396,13 @@ function attachSearchEvents() {
         setTimeout(attachSearchEvents, 100);
         return;
     }
+    
+    // 이미 이벤트가 바인딩된 경우 중복 바인딩 방지
+    if (inputEl.dataset.initialized === "true") {
+        return;
+    }
+    inputEl.dataset.initialized = "true";
+
     function executeSearch() {
         const kw = inputEl.value.trim();
         const engine = engineEl.value;

@@ -111,6 +111,10 @@ def inject_custom_header():
     st.markdown(
         """
     <style>
+    [data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
+    div[data-testid="collapsedControl"] {
+        display: none !important;
+    }
     .block-container { padding-top: 100px !important; }
     div[data-testid="stElementContainer"]:has(#global-logout-marker),
     div[data-testid="stElementContainer"]:has(#global-logout-marker) + div[data-testid="stElementContainer"] {

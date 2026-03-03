@@ -66,6 +66,10 @@ admin_name = st.session_state.user.get("name", "관리자")
 st.markdown(
     """
 <style>
+    [data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
+    div[data-testid="collapsedControl"] {
+        display: none !important;
+    }
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
 
     :root { color-scheme: light !important; }

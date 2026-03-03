@@ -38,6 +38,7 @@ def send_auth_email(receiver_email, auth_code):
 st.markdown(
     """
 <style>
+[data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root { color-scheme: light !important; }

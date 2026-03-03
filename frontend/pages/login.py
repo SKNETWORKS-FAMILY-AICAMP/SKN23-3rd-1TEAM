@@ -260,6 +260,10 @@ if "show_admin_choice" not in st.session_state:
 st.markdown(
     """
     <style>
+    [data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
+    div[data-testid="collapsedControl"] {
+        display: none !important;
+    }
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
     :root { color-scheme: light !important; }
     * { font-family: 'Noto Sans KR', sans-serif; box-sizing: border-box; color: #111 !important; }
