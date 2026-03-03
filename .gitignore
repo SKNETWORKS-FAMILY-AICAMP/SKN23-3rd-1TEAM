@@ -188,6 +188,7 @@ pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/venv,python03_text_vectorization/GoogleNews-vectors-negative300.bin.gz
 03_text_vectorization/ted_en-20160408.xml
+<<<<<<< HEAD
 
 # 내가 수정한 내용 
 # macOS
@@ -213,3 +214,5 @@ run_backend.sh
 server_log.txt
 settings.json
 
+=======
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111

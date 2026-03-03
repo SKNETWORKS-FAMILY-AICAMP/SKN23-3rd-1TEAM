@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿"""
 File: app.py
 Author: 김지우
@@ -21,3 +22,12 @@ if social_provider:
 
 # login.py로 바로 이동
 st.switch_page("pages/login.py")
+=======
+import streamlit as st
+st.set_page_config(page_title="AIWORK", page_icon="🔐", layout="centered")  # 기본 설정
+
+if st.session_state.get("access_token"):
+    st.switch_page("pages/home.py")
+else:
+    st.switch_page("pages/login.py")
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111

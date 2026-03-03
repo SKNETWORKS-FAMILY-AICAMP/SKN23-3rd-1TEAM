@@ -18,10 +18,19 @@ Modification History:
 """
 
 import streamlit as st
+<<<<<<< HEAD
 import time
 import yaml
 import os
 import extra_streamlit_components as stx
+=======
+import os
+from dotenv import load_dotenv
+from authlib.integrations.requests_client import OAuth2Session
+import requests
+
+load_dotenv()
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 
 from utils.api_utils import api_login, api_verify_token, api_unlock_dormant
 from utils.config import GOOGLE_URI, KAKAO_URI

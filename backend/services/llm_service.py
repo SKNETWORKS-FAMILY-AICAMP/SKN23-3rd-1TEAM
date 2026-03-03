@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 File: services/llm_service.py
 Author: 양창일
 Created: 2026-02-15
@@ -491,3 +492,18 @@ def get_home_guide_response_stream(user_message: str, web_context: str):
                 
     except Exception as e:
         yield f"죄송합니다. 오류가 발생했습니다. ({e})"
+=======
+File: llm_service.py
+Author: 양창일
+Created: 2026-02-15
+Description: 실제로 AI를 실행하는 코드
+
+Modification History:
+- 2026-02-15: 초기 생성
+"""
+
+from backend.models.loader import model
+
+def generate_text(prompt: str):
+    return model(prompt)
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111

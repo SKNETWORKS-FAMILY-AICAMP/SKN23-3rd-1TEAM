@@ -6,10 +6,13 @@ Description: 로그인 관련 데이터 모양 정의
 
 Modification History:
 - 2026-02-15: 초기 생성
+<<<<<<< HEAD
 - 2026-02-21 (김지우): email 추가, 비밀번호 찾기 관련 스키마 추가
 - 2026-02-22 (양창일): username 혼동으로 email, name으로 정리, 소셜 로그인 수정
 - 2026-02-23 (양창일): profile_image_url 추가
 - 2026-02-23 (김지우): 마이페이지 연동을 위해 TokenResponse에 email, tier 속성 추가
+=======
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 """
 
 from pydantic import BaseModel, Field  
@@ -22,6 +25,7 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)  
 
 class LoginRequest(BaseModel):
+<<<<<<< HEAD
     email: str  
     password: str  
 
@@ -55,3 +59,15 @@ class ResetPasswordRequest(BaseModel):
 class RefreshRequest(BaseModel):
     refresh_token: str | None = None
     csrf_token: str | None = None
+=======
+    username: str  # 유저명
+    password: str  # 비번
+
+class TokenResponse(BaseModel):
+    access_token: str  # 액세스 토큰
+    token_type: str = "bearer"  # 타입
+
+class MeResponse(BaseModel):
+    id: int  # 유저 ID
+    username: str  # 유저명
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111

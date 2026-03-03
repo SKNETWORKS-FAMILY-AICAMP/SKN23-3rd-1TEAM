@@ -6,6 +6,7 @@ Description: AI 실행해주는 API 주소
 
 Modification History:
 - 2026-02-15: 초기 생성
+<<<<<<< HEAD
 - 2026-02-22: RAG + DB 질문 풀 기반 AI 면접 실행 및 기록 API 통합, 면접 종료 시 최종 점수 계산 및 세션 정보 업데이트
 - 2026-02-28(양창일) : 태도값 추가
 """
@@ -26,17 +27,28 @@ router = APIRouter(prefix="/api/infer", tags=["infer"])
 # 서버 시작 시 즉시 초기화하지 않고, 실제 요청 시점에 초기화 (OpenAI/Chroma 블로킹 방지)
 def _get_ai():
     return get_ai_service()
+=======
+"""
+
+from fastapi import APIRouter, Depends, Request, HTTPException  # fastapi
+from sqlalchemy.orm import Session  # 세션
+from backend.db.session import get_db  # db
+from backend.schemas.infer_schema import InferRequest, InferResponse  # 스키마
+from backend.services.llm_service import generate_text  # 모델 호출
+from backend.services import auth_service  # 인증
+from backend.models.user import User  # 타입
+
+router = APIRouter(prefix="/api", tags=["infer"])  # 라우터
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 
 def require_user(req: Request, db: Session) -> User:
-    auth = req.headers.get("Authorization", "")
+    auth = req.headers.get("Authorization", "")  # 헤더
     if not auth.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
-    token = auth.split(" ", 1)[1].strip()
-    user = auth_service.get_user_from_access(db, token)
-    if not user:
-        raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
-    return user
+        raise HTTPException(status_code=401, detail="unauthorized")  # 거부
+    token = auth.split(" ", 1)[1].strip()  # 토큰
+    return auth_service.get_user_from_access(db, token)  # 유저
 
+<<<<<<< HEAD
 def format_attitude_for_prompt(attitude: dict | None) -> str:
     if not attitude:
         return ""
@@ -383,3 +395,10 @@ def evaluate_turn(body: dict):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"평가 실패: {str(e)}")
+=======
+@router.post("/infer", response_model=InferResponse)
+def infer(req: Request, body: InferRequest, db: Session = Depends(get_db)):
+    _user = require_user(req, db)  # 인증
+    result = generate_text(body.prompt)  # 추론
+    return {"result": result}  # 반환
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111

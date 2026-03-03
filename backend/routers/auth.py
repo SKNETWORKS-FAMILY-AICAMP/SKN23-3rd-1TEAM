@@ -1,10 +1,11 @@
 ﻿"""
 File: auth.py
-Author: 양창일, 김지우
+Author: 양창일
 Created: 2026-02-15
 Description: 로그인, 회원가입 처리하는 API 주소
 
 Modification History:
+<<<<<<< HEAD
 - 2026-02-15 (양창일): 초기 생성 (로그인, 회원가입, CSRF 방어, Rate Limit 등)
 - 2026-02-21 (김지우): 로그인 API 로직 보완
 - 2026-02-22 (김지우): 토큰 검증(/verify) API 및 비밀번호 찾기(/send-reset-email, /reset-password) API 통합 추가, 권한(Role) 반환 로직 동적 수정
@@ -36,19 +37,25 @@ from backend.services import auth_service
 from backend.core.config import settings
 from backend.core.security import new_csrf_token
 from backend.models.user import User
+=======
+- 2026-02-15: 초기 생성
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, Request, Response  # fastapi
+from sqlalchemy.orm import Session  # 세션
+from backend.db.session import get_db  # DB
+from backend.schemas.auth_schema import SignupRequest, LoginRequest, TokenResponse, MeResponse  # 스키마
+from backend.services import auth_service  # 서비스
+from backend.core.config import settings  # 설정
+from backend.core.security import new_csrf_token  # CSRF
+from backend.models.user import User  # 타입힌트
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 from backend.core.rate_limit import check_block, record_failure, reset_attempts
 
-load_dotenv(override=True)
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-aiwork-key-2026")
+router = APIRouter(prefix="/api/auth", tags=["auth"])  # 라우터
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-
-# ==========================================
-# 🛠️ 쿠키 및 CSRF 보조 함수 (기존 로직 유지)
-# ==========================================
 def set_auth_cookies(res: Response, refresh_token: str, csrf_token: str) -> None:
-    res.set_cookie(
+    res.set_cookie(  # refresh 쿠키(HTTPOnly)
         key=settings.REFRESH_COOKIE_NAME,
         value=refresh_token,
         httponly=True,
@@ -57,7 +64,7 @@ def set_auth_cookies(res: Response, refresh_token: str, csrf_token: str) -> None
         domain=settings.COOKIE_DOMAIN,
         path="/api/auth",
     )
-    res.set_cookie(
+    res.set_cookie(  # csrf 쿠키(JS가 읽어서 헤더로 보냄)
         key=settings.CSRF_COOKIE_NAME,
         value=csrf_token,
         httponly=False,
@@ -69,16 +76,17 @@ def set_auth_cookies(res: Response, refresh_token: str, csrf_token: str) -> None
 
 
 def clear_auth_cookies(res: Response) -> None:
-    res.delete_cookie(settings.REFRESH_COOKIE_NAME, path="/api/auth", domain=settings.COOKIE_DOMAIN)
-    res.delete_cookie(settings.CSRF_COOKIE_NAME, path="/api/auth", domain=settings.COOKIE_DOMAIN)
+    res.delete_cookie(settings.REFRESH_COOKIE_NAME, path="/api/auth", domain=settings.COOKIE_DOMAIN)  # refresh 삭제
+    res.delete_cookie(settings.CSRF_COOKIE_NAME, path="/api/auth", domain=settings.COOKIE_DOMAIN)  # csrf 삭제
 
 
 def require_csrf(req: Request) -> None:
-    cookie = req.cookies.get(settings.CSRF_COOKIE_NAME)
-    header = req.headers.get("X-CSRF-Token")
+    cookie = req.cookies.get(settings.CSRF_COOKIE_NAME)  # 쿠키 csrf
+    header = req.headers.get("X-CSRF-Token")  # 헤더 csrf
     if (not cookie) or (not header) or (cookie != header):
-        raise HTTPException(status_code=403, detail="CSRF 에러: 올바르지 않은 접근입니다.")
+        raise HTTPException(status_code=403, detail="CSRF")  # 거부
 
+<<<<<<< HEAD
 
 def get_current_user(req: Request, db: Session) -> User:
     auth = req.headers.get("Authorization", "")
@@ -99,8 +107,15 @@ def signup(req: SignupRequest, db: Session = Depends(get_db)):
     try:
         auth_service.signup(db, req.email, req.password, req.name)
         return {"ok": True}
+=======
+@router.post("/signup")
+def signup(req: SignupRequest, db: Session = Depends(get_db)):
+    try:
+        auth_service.signup(db, req.username, req.password)  # 가입
+        return {"ok": True}  # 응답
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
     except ValueError:
-        raise HTTPException(status_code=400, detail="유효하지 않은 요청입니다.")
+        raise HTTPException(status_code=400, detail="invalid request")  # 정보 최소화
 
 
 @router.get("/check-email")
@@ -123,21 +138,25 @@ def api_send_signup_email(req: ResetEmailRequest, db: Session = Depends(get_db))
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, request: Request, res: Response, db: Session = Depends(get_db)):
+<<<<<<< HEAD
     ip = request.client.host
+=======
+    ip = request.client.host  # 접속 IP
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 
     # 🔒 차단 확인
     try:
         check_block(ip)
     except Exception:
-        raise HTTPException(status_code=429, detail="시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.")
+        raise HTTPException(status_code=429, detail="Too many attempts. Try later.")
 
     # 1. 비밀번호 검증 (성공 시 access 토큰 반환)
     try:
-        access, refresh, user_id = auth_service.login(db, req.email, req.password)
-        reset_attempts(ip)
+        access, refresh, _ = auth_service.login(db, req.username, req.password)
+        reset_attempts(ip)  # 성공하면 초기화
     except ValueError:
-        record_failure(ip)
-        raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 일치하지 않습니다.")
+        record_failure(ip)  # 실패 기록
+        raise HTTPException(status_code=401, detail="invalid credentials")
 
     # 2. 유저 정보 조회
     user_obj = db.query(User).filter(User.id == int(user_id)).first()
@@ -153,7 +172,15 @@ def login(req: LoginRequest, request: Request, res: Response, db: Session = Depe
     # 4. 상태가 정상(active)인 경우에만 쿠키 세팅 및 로그인 성공 처리
     csrf = new_csrf_token()
     set_auth_cookies(res, refresh, csrf)
+    return {"access_token": access, "token_type": "bearer"}
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(req: Request, res: Response, db: Session = Depends(get_db)):
+    require_csrf(req)  # CSRF 체크
+    refresh_token = req.cookies.get(settings.REFRESH_COOKIE_NAME)  # refresh 읽기
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="invalid token")  # 없음
 
+<<<<<<< HEAD
     # 🔥 마이페이지용 데이터를 DB에서 안전하게 가져오기
     user_name = (user_obj.name or req.email.split("@")[0]) if user_obj else req.email.split("@")[0]
     user_role = getattr(user_obj, "role", "user") if user_obj else "user"
@@ -173,13 +200,24 @@ def login(req: LoginRequest, request: Request, res: Response, db: Session = Depe
         "refresh_token": refresh,
         "csrf_token": csrf,
     }
+=======
+    try:
+        new_access, new_refresh = auth_service.rotate_refresh(db, refresh_token)  # 회전
+    except Exception:
+        raise HTTPException(status_code=401, detail="invalid token")  # 실패
+
+    csrf = new_csrf_token()  # 새 csrf
+    set_auth_cookies(res, refresh_token=new_refresh, csrf_token=csrf)  # 새 쿠키
+    return {"access_token": new_access, "token_type": "bearer"}  # 새 access
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
 
 
 @router.post("/logout")
 def logout(req: Request, res: Response, db: Session = Depends(get_db)):
-    require_csrf(req)
-    refresh_token = req.cookies.get(settings.REFRESH_COOKIE_NAME)
+    require_csrf(req)  # CSRF 체크
+    refresh_token = req.cookies.get(settings.REFRESH_COOKIE_NAME)  # refresh
     if refresh_token:
+<<<<<<< HEAD
         auth_service.revoke_refresh(db, refresh_token)
     clear_auth_cookies(res)
     return {"ok": True}
@@ -199,9 +237,21 @@ def refresh(
     if not (payload and payload.refresh_token):
         require_csrf(req)
 
+=======
+        auth_service.revoke_refresh(db, refresh_token)  # 폐기
+    clear_auth_cookies(res)  # 쿠키 삭제
+    return {"ok": True}  # 응답
+
+def get_current_user(req: Request, db: Session) -> User:
+    auth = req.headers.get("Authorization", "")  # 헤더
+    if not auth.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="unauthorized")  # 없음
+    token = auth.split(" ", 1)[1].strip()  # 토큰
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
     try:
-        new_access, new_refresh = auth_service.rotate_refresh(db, refresh_token)
+        return auth_service.get_user_from_access(db, token)  # 유저
     except Exception:
+<<<<<<< HEAD
         raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다.")
 
     csrf = new_csrf_token()
@@ -369,3 +419,11 @@ def upload_profile_image(
     db.refresh(user)
 
     return {"profile_image_url": user.profile_image_url}
+=======
+        raise HTTPException(status_code=401, detail="unauthorized")  # 실패
+
+@router.get("/me", response_model=MeResponse)
+def me(req: Request, db: Session = Depends(get_db)):
+    user = get_current_user(req, db)  # 유저
+    return {"id": user.id, "username": user.username}  # 반환
+>>>>>>> 3266b1e9f74b438985b9c6640f00b53ce80b4111
