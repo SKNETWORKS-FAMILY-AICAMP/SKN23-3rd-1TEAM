@@ -1,6 +1,6 @@
 <br>
 
-# <div align="center"> **🤖 AIWORK (차세대 AI 주도형 면접 SaaS)** </div>
+# <div align="center"> **👾 AIWORK (차세대 AI 주도형 면접 SaaS)** </div>
 
 <br>
 
@@ -29,10 +29,18 @@
     <td style="border: 1px solid #ddd; padding: 8px;"><strong>유헌상</strong></td>
   </tr>
   <tr>
-    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all;"><strong>팀장</strong></td>
-    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all;"><strong>팀원</strong></td>
-    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all;"><strong>팀원</strong></td>
-    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all;"><strong>팀원</strong></td>
+    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all; text-align: center;">
+        <strong>팀장 (양창일)</strong><br><span style="font-size: 13px;">PM & 아키텍처 설계</span>
+    </td>
+    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all; text-align: center;">
+        <strong>팀원 (김다빈)</strong><br><span style="font-size: 13px;">클라우드 인프라 & DevOps & 프론트엔드</span>
+    </td>
+    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all; text-align: center;">
+        <strong>팀원 (김지우)</strong><br><span style="font-size: 13px;">AI 파이프라인 (RAG & Vector DB) & 프론트엔드</span>
+    </td>
+    <td style="border: 1px solid #ddd; padding: 8px; color: #555; word-break: keep-all; text-align: center;">
+        <strong>팀원 (유헌상)</strong><br><span style="font-size: 13px;">백엔드 개발 & 외부 API 연동 및 프롬프트 엔지니어링</span>
+    </td>
   </tr>
   <tr style="background-color: #ffffff; font-size: 13px;">
     <td style="border: 1px solid #ddd; padding: 8px;">
@@ -62,19 +70,21 @@
 
 # 📄 프로젝트 개요 (Overview)
 
+<br>
+
 > *"소프트웨어가 세상을 집어삼키던 시대는 끝났다. 이제 AI가 소프트웨어를 집어삼킬 것이다."*
 
 최근 IT 업계에서는 <strong>"기존 SaaS(Software as a Service)의 80%가 도태될 것"</strong>이라는 위기론이 돌고 있습니다. 사용자는 더 이상 복잡한 기능을 직접 클릭하고 학습해야 하는 '정적인 도구(Tool)'를 원하지 않기 때문입니다. 이제 사용자는 자신의 목표 달성을 위해 먼저 고민해주고 과정을 리드하는 <strong>'능동적인 파트너'</strong>를 원합니다. 
 
 기존 SaaS가 사용자가 기능을 사용하는 구조에서 그쳤다면,  
-<strong>AIWORK</strong>는 AI와의 상호작용을 통해 사용자가 자신의 준비 상태를 검증받을 수 있는 구조를 제공합니다.
+<strong>AIWORK</strong>는 <u>AI와의 상호작용</u>을 통해 사용자가 자신의 준비 상태를 검증받을 수 있는 구조를 제공합니다.
 
 <strong>AIWORK</strong>는 바로 이 지점에서 출발했습니다. 우리는 기능만 나열해 둔 플랫폼이 아니라, AI가 시스템의 심장부에서 사용자의 취업 여정을 직접 이끌어주는 <strong>'차세대 AI 지원형 SaaS'</strong>를 제안합니다.
 
 <br>
 
 ## ✦ 프로젝트 소개
-AIWORK는 로그인, 회원 등급, 대시보드 등 표준화된 SaaS 아키텍처 위에 **RAG(검색 증강 생성) 기반의 AI 면접관**을 코어로 결합한 서비스입니다. 사용자의 이력서를 분석하여 실전과 같은 압박 꼬리질문을 던지고 정밀한 성과 리포트를 제공합니다.
+<strong>AIWORK</strong>는 로그인, 회원 등급, 대시보드 등 표준화된 SaaS 아키텍처 위에 **RAG(검색 증강 생성) 기반의 AI 면접관**을 코어로 결합한 서비스입니다. 사용자의 이력서를 분석하여 실전과 같은 압박 꼬리질문을 던지고 정밀한 성과 리포트를 제공합니다.
 
 > **프로젝트 기간:** 2026.02.27(금) ~ 2026.03.03(화) **(5일)**
 
@@ -82,7 +92,7 @@ AIWORK는 로그인, 회원 등급, 대시보드 등 표준화된 SaaS 아키텍
 
 # 💼 비즈니스 이해 (Business Understanding)
 
-본 프로젝트는 전형적인 SaaS 비즈니스 모델을 기반으로, AI를 통해 사용자 경험의 가치를 극대화하도록 설계되었습니다.
+본 프로젝트는 **전형적인 SaaS 비즈니스 모델**을 기반으로, AI를 통해 사용자 경험의 가치를 극대화하도록 설계되었습니다.
 
 ### 1. 타겟 고객 및 가치 제안 (Target & Value)
 
@@ -235,6 +245,14 @@ User Flow: AI 모의면접 진행 파이프라인
       ├── 리포트 생성: LLM이 세션 전체 로그를 종합 분석하여 강/약점 도출 마크다운 리포트 작성
       └── 마이페이지 렌더링: Streamlit Native 모달(Modal) 창을 통해 사용자에게 최종 결과표 및 백분위 데이터 제공
 ```
+<div align="center">
+
+## ERD
+
+<img src="frontend/assets/images/erd.png" width="800">
+
+</div>
+
 
 <div align="center">
 
@@ -414,7 +432,7 @@ User Flow: AI 모의면접 진행 파이프라인
 
 ### ✦ AI & LLM Engine
 
-<img src="https://img.shields.io/badge/OpenAI-54d7ff?style=for-the-badge&logo=openai&logo=openai"> <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white"> <img src="https://img.shields.io/badge/LangGraph-5A5A5A?style=for-the-badge&logoColor=white">
+<img src="https://img.shields.io/badge/OpenAI-54d7ff?style=for-the-badge&logo=openai&logo=openai"> <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white">
 
 ### ✦ Database & Data Processing
 
@@ -486,19 +504,19 @@ User Flow: AI 모의면접 진행 파이프라인
 # ✏️ 한 줄 회고
 
 * **양창일 (팀장)**
-> (공백)
+> AI를 접목한 SaaS 구조의 프로젝트를 수행하며, 미래지향적인 소프트웨어 아키텍처와 서비스 모델에 대해 깊이 고민해볼 수 있었습니다.
 
 
 * **김다빈 (팀원)**
-> (공백)
+> AWS와 Ngrok이라는 낯선 영역에 도전하며 셀수도 없이 많은 오류를 겪었지만, 유능한 팀원들이 곁에 있었기에 포기하지 않고 끝까지 완주할 수 있었습니다. 감사합니다.
 
 
 * **김지우 (팀원)**
-> (공백)
+> 사용자의 이력서를 벡터 DB에 임베딩하고 RAG 엔진과 연동해 AI 면접 서비스 구조를 설계했습니다. 다양한 테스트를 통해 최적의 청킹 방법을 찾아 환각 문제를 해결하고 기본 챗봇을 넘어 개인 맞춤형 AI 면접 서비스의 기반을 마련한 의미 있는 프로젝트였습니다. 감사합니다.
 
 
 * **유헌상 (팀원)**
-> (공백)
+> 프롬프트 엔지니어링을 다시 해보면서 LLM의 출력을 원하는 방향으로 유도하는 것이 재밌었다. 그리고 외부 채용공고 API를 백엔드에 연결하면서, 처음 사용해보는 FastAPI의 구조와 기능을 조금이나마 배울 수 있었습니다. 백엔드와 프론트, LLM의 일부 기능들을 조금씩 경험하면서 다양하게 학습을 할 수 있었던 것 같아 좋았습니다.
 
 <br><br>
 
