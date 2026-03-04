@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# --- 인증 및 권한 확인 ---
+# 인증 및 권한 확인
 import extra_streamlit_components as stx
 from utils.api_utils import api_verify_token
 
@@ -62,7 +62,7 @@ if st.session_state.user.get("role") != "admin":
 
 admin_name = st.session_state.user.get("name", "관리자")
 
-# --- 커스텀 CSS ---
+# CSS
 st.markdown(
     """
 <style>
@@ -465,10 +465,8 @@ st.markdown(
 if "admin_menu" not in st.session_state:
     st.session_state.admin_menu = "회원 관리"
 
-# === 메인 레이아웃 ===
 nav_col, content_col = st.columns([2, 8], gap="medium")
 
-# --- 좌측 네비 ---
 with nav_col:
     st.markdown('<p class="nav-brand">메뉴</p>', unsafe_allow_html=True)
 
@@ -492,10 +490,10 @@ with nav_col:
 
 menu = st.session_state.admin_menu
 
-# --- 우측 콘텐츠 ---
+
 with content_col:
 
-    # ─── 서버 정보 조회 (회원 관리에서만 사용) ───
+    # 서버 정보 조회 (회원 관리에서만 사용) 
     try:
         info = get_instance_info()
         server_state = info.get("state", "unknown")
@@ -506,9 +504,7 @@ with content_col:
         server_state = "unknown"
         server_ip = "N/A"
 
-    # =========================================================================
-    # 1. 회원 관리
-    # =========================================================================
+
     if "회원 관리" in menu:
 
         st.markdown(
@@ -764,10 +760,7 @@ with content_col:
                     "회원 데이터를 불러올 수 없습니다. 서버 상태를 확인해주세요."
                 )
 
-    # =========================================================================
-    # =========================================================================
-    # 2. 서비스 설정
-    # =========================================================================
+
     elif "서비스 설정" in menu:
 
         import yaml
@@ -806,7 +799,7 @@ with content_col:
         cur_notice = gs.get("system_notice", "")
         cur_notice_on = gs.get("notice_enabled", False)
 
-        # ── A: 서비스 운영 상태 ──
+        # 서비스 운영 상태
         s_label = "점검 중" if is_maint else "정상 운영"
         s_color = "#dc2626" if is_maint else "#16a34a"
         s_bg = "#fee2e2" if is_maint else "#dcfce7"
@@ -844,7 +837,7 @@ with content_col:
                 st.toast("점검 모드 ON" if new_maint else "점검 모드 OFF")
                 st.rerun()
 
-        # ── B: 공지사항 배너 ──
+        # 공지사항 배너
         n_label = "노출 중" if cur_notice_on else "비활성"
         n_color = "#059669" if cur_notice_on else "#6b7280"
         n_bg = "#d1fae5" if cur_notice_on else "#f3f4f6"
@@ -885,7 +878,7 @@ with content_col:
                     st.toast("공지사항이 저장되었습니다.")
                     st.rerun()
 
-        # ── C: 시스템 정보 ──
+        # 시스템 정보
         with st.container(border=True):
             st.markdown('<p class="card-title">시스템 정보</p>', unsafe_allow_html=True)
             st.markdown(
@@ -925,7 +918,7 @@ with content_col:
                     st.cache_resource.clear()
                     st.toast("캐시가 초기화되었습니다.")
 
-        # ── D: 계정 (위험 영역) ──
+        # 계정 (위험 영역)
         with st.container(border=True):
             st.markdown(
                 '<p class="card-title" style="color:#dc2626 !important;">계정</p>',

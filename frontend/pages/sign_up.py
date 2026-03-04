@@ -22,7 +22,7 @@ from utils.api_utils import api_check_email, api_send_signup_email, api_signup
 st.set_page_config(page_title="AIWORK", page_icon="👾", layout="centered")
 
 
-# --- 이메일 중복 확인 (DB 조회) ---
+# 이메일 중복 확인 (DB 조회)
 def check_email_exists(email):
     success, result = api_check_email(email)
     if not success:
@@ -87,7 +87,7 @@ if "email_input" in st.session_state:
         st.session_state.is_verified = False
         st.session_state.code_sent = False
 
-# CSS 스타일
+# CSS
 st.markdown(
     """
 <style>

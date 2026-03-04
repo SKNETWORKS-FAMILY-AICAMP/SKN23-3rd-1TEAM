@@ -26,7 +26,6 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-# --- 백엔드 모듈 임포트 ---
 from backend.db.session import get_db
 from backend.schemas.auth_schema import (
     SignupRequest, LoginRequest, TokenResponse, MeResponse,
@@ -44,9 +43,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-aiwork-key-2026")
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-# ==========================================
-# 🛠️ 쿠키 및 CSRF 보조 함수 (기존 로직 유지)
-# ==========================================
+# 쿠키 및 CSRF 보조 함수 (기존 로직 유지)
 def set_auth_cookies(res: Response, refresh_token: str, csrf_token: str) -> None:
     res.set_cookie(
         key=settings.REFRESH_COOKIE_NAME,
@@ -91,9 +88,7 @@ def get_current_user(req: Request, db: Session) -> User:
         raise HTTPException(status_code=401, detail="unauthorized")
 
 
-# ==========================================
 # 기본 계정 API: 회원가입, 로그인, 로그아웃
-# ==========================================
 @router.post("/signup")
 def signup(req: SignupRequest, db: Session = Depends(get_db)):
     try:
@@ -125,13 +120,12 @@ def api_send_signup_email(req: ResetEmailRequest, db: Session = Depends(get_db))
 def login(req: LoginRequest, request: Request, res: Response, db: Session = Depends(get_db)):
     ip = request.client.host
 
-    # 🔒 차단 확인
     try:
         check_block(ip)
     except Exception:
         raise HTTPException(status_code=429, detail="시도 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.")
 
-    # 1. 비밀번호 검증 (성공 시 access 토큰 반환)
+    # 비밀번호 검증 (성공 시 access 토큰 반환)
     try:
         access, refresh, user_id = auth_service.login(db, req.email, req.password)
         reset_attempts(ip)
@@ -139,10 +133,10 @@ def login(req: LoginRequest, request: Request, res: Response, db: Session = Depe
         record_failure(ip)
         raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 일치하지 않습니다.")
 
-    # 2. 유저 정보 조회
+    # 유저 정보 조회
     user_obj = db.query(User).filter(User.id == int(user_id)).first()
 
-    # 🔥 3. [추가된 로직] 비밀번호는 맞았지만, 계정 상태(status)가 휴면/탈퇴인지 검사!
+    # 비밀번호는 맞았지만, 계정 상태(status)가 휴면/탈퇴
     if user_obj:
         user_status = getattr(user_obj, "status", "active")
         if user_status == "withdrawn":
@@ -150,11 +144,11 @@ def login(req: LoginRequest, request: Request, res: Response, db: Session = Depe
         if user_status == "dormant":
             raise HTTPException(status_code=403, detail="장기 미접속으로 휴면 전환된 계정입니다.")
 
-    # 4. 상태가 정상(active)인 경우에만 쿠키 세팅 및 로그인 성공 처리
+    # 태가 정상(active)인 경우에만 쿠키 세팅 및 로그인 성공 처리
     csrf = new_csrf_token()
     set_auth_cookies(res, refresh, csrf)
 
-    # 🔥 마이페이지용 데이터를 DB에서 안전하게 가져오기
+    # 마이페이지용 데이터를 DB에서 안전하게 가져오기
     user_name = (user_obj.name or req.email.split("@")[0]) if user_obj else req.email.split("@")[0]
     user_role = getattr(user_obj, "role", "user") if user_obj else "user"
     user_profile_image_url = getattr(user_obj, "profile_image_url", None) if user_obj else None
@@ -227,9 +221,7 @@ def me(req: Request, db: Session = Depends(get_db)):
     return {"id": user.id, "email": user.email, "name": user.name}
 
 
-# ==========================================
 # 프론트엔드용 API: 토큰 검증, 비밀번호 찾기
-# ==========================================
 @router.get("/verify")
 def verify_token(authorization: str = Header(None), db: Session = Depends(get_db)):
     """프론트엔드(home.py)가 화면 이동 시 토큰의 만료 여부를 묻는 API"""
@@ -332,34 +324,31 @@ def api_withdraw(req: WithdrawRequest, db: Session = Depends(get_db)):
     return {"detail": "회원 탈퇴가 완료되었습니다."}
 
 
-# ==========================================
-# 프로필 사진 업로드 API (김지우 추가)
-# ==========================================
 @router.post("/profile-image")
 def upload_profile_image(
     req: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # 1. 토큰으로 현재 요청한 유저 확인
+    # 토큰으로 현재 요청한 유저 확인
     user = get_current_user(req, db)
     if not user:
         raise HTTPException(status_code=401, detail="로그인이 필요합니다.")
 
-    # 2. 백엔드 프로젝트 최상단에 폴더 생성 (없으면 자동 생성)
+    # 백엔드 프로젝트 최상단에 폴더 생성 (없으면 자동 생성)
     UPLOAD_DIR = "static/profiles"
     os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    # 3. 기존 파일명에서 확장자를 추출하고 고유한 새 이름 만들기
+    # 기존 파일명에서 확장자를 추출하고 고유한 새 이름 만들기
     ext = file.filename.split(".")[-1]
     new_filename = f"user_{user.id}_{uuid.uuid4().hex[:8]}.{ext}"
     file_path = os.path.join(UPLOAD_DIR, new_filename)
 
-    # 4. 서버 폴더에 파일 저장
+    # 서버 폴더에 파일 저장
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 5. DB 업데이트 및 프론트로 경로 반환
+    # DB 업데이트 및 프론트로 경로 반환
     image_url = f"http://127.0.0.1:8000/static/profiles/{new_filename}"
 
     # DB에 밀어넣는 코드

@@ -77,7 +77,7 @@ def _handle_request(method, endpoint, **kwargs):
         timeout = kwargs.pop('timeout', 30)
         response = requests.request(method, url, timeout=timeout, **kwargs)
 
-        # 빈 바디 방어: JSON 파싱 실패도 안전하게 처리
+        # JSON 파싱 실패도 안전하게 처리
         def _safe_json():
             try:
                 return response.json()
@@ -89,7 +89,7 @@ def _handle_request(method, endpoint, **kwargs):
             _store_auth_tokens(body)
             return True, body
 
-        # 💡 에러 메시지 추출 (빈 바디여도 안전)
+        # 에러 메시지 추출 
         if (
             response.status_code == 401
             and endpoint not in {"/auth/login", "/auth/refresh"}
@@ -120,7 +120,7 @@ def _handle_request(method, endpoint, **kwargs):
     except Exception as e:
         return False, f"알 수 없는 오류 발생: {str(e)}"
 
-# 1. 인증 및 계정 관련 (Auth)
+# 인증 및 계정 관련 (Auth)
 def api_login(email, password):
     """
     백엔드에 로그인을 요청합니다.
@@ -235,7 +235,7 @@ def api_get_home_guide(message, use_web_search=False):
     )
 
 
-# 2. 면접 및 RAG 관련 (Inference)
+# 면접 및 RAG 관련 (Inference)
 def api_ingest_resume(file):
     """이력서 PDF를 백엔드에 업로드하여 벡터 DB에 인덱싱
     ※ OpenAI 임베딩 처리 시간을 고려해 timeout=120s 적용
@@ -246,7 +246,7 @@ def api_ingest_resume(file):
         response = requests.post(url, files=files, timeout=120)
         if response.status_code == 200:
             return True, "학습 성공"
-        # 빈 응답 방어: response.json()이 빈 바디에서 JSONDecodeError를 냄
+        # response.json()이 빈 바디에서 JSONDecodeError를 냄
         try:
             detail = response.json().get("detail", "학습 실패")
         except Exception:
@@ -297,7 +297,7 @@ def api_stt_whisper(audio_file):
     try:
         url = f"{API_BASE_URL.rstrip('/')}/infer/stt"
         files = {"file": (audio_file.name, audio_file.getvalue(), "audio/wav")}
-        # 🔥 파일 전송 및 처리 시간을 고려해 명시적으로 30초 타임아웃 추가
+        # 파일 전송 및 처리 시간을 고려해 명시적으로 30초 타임아웃 추가
         response = requests.post(url, files=files, timeout=30)
         
         if response.status_code == 200:
@@ -313,7 +313,7 @@ def api_tts_service(text):
     """
     try:
         url = f"{API_BASE_URL.rstrip('/')}/infer/tts"
-        # 🔥 기존 15초에서 30초로 넉넉하게 연장
+        # 기존 15초에서 30초로 넉넉하게 연장
         response = requests.post(url, json={"text": text}, timeout=30)
         
         if response.status_code == 200:
@@ -358,18 +358,18 @@ def api_update_profile_image(uploaded_file):
     
     url = f"{API_BASE_URL.rstrip('/')}/auth/profile-image"
     
-    # 1. 내 주머니(세션)에서 로그인 토큰 꺼내기
+    # 내 주머니(세션)에서 로그인 토큰 꺼내기
     token = st.session_state.get("token")
     if not token:
         return False, "로그인 토큰이 없습니다. 다시 로그인해주세요."
         
-    # 2. 백엔드 문지기에게 보여줄 출입증(헤더) 만들기
+    # 백엔드 문지기에게 보여줄 출입증(헤더) 만들기
     headers = {"Authorization": f"Bearer {token}"}
     
-    # 3. 사진 파일을 FastAPI가 좋아하는 모양(Multipart)으로 예쁘게 포장하기
+    # 사진 파일을 FastAPI가 좋아하는 모양(Multipart)으로 예쁘게 포장하기
     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
     
-    # 4. 백엔드로 날리기
+    # 백엔드로 날리기
     try:
         response = requests.post(url, headers=headers, files=files, timeout=30)
         
@@ -393,7 +393,7 @@ def api_delete_interview_session(session_id: int) -> tuple[bool, str]:
     
     API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
     
-    # 🎯 1. 세션 및 쿠키에서 안전하게 토큰 찾기 (이름 'token' 으로 수정)
+    # 세션 및 쿠키에서 안전하게 토큰 찾기 (이름 'token' 으로 수정)
     access_token = st.session_state.get("token") # access_token -> token 으로 수정됨!
     
     # 세션에 없으면 최신 스트림릿 네이티브 기능으로 쿠키 확인
@@ -409,12 +409,12 @@ def api_delete_interview_session(session_id: int) -> tuple[bool, str]:
         except:
             pass
 
-    # 🚨 끝까지 토큰을 못 찾으면 에러 반환
+    # 끝까지 토큰을 못 찾으면 에러 반환
     if not access_token:
         return False, "로그인 인증이 만료되었거나 토큰을 찾을 수 없습니다."
         
     try:
-        # 🎯 2. 토큰을 싣고 백엔드로 삭제 요청 보내기
+        # 토큰을 싣고 백엔드로 삭제 요청 보내기
         response = requests.delete(
             f"{API_BASE_URL}/interview/sessions/{session_id}",
             headers={
@@ -424,7 +424,7 @@ def api_delete_interview_session(session_id: int) -> tuple[bool, str]:
             timeout=10
         )
         
-        # 🔥 실제 서버 응답에 맞춰 정확하게 에러 분류
+        # 실제 서버 응답에 맞춰 정확하게 에러 분류
         if response.status_code == 200:
             return True, "삭제 완료"
         
