@@ -165,7 +165,7 @@ div[data-testid="stVerticalBlock"]:has(#pw-marker):has(button:hover) .pw-row-box
 div[data-testid="stVerticalBlock"]:has(#pw-marker):has(button:hover) .list-arrow { color: #bb38d0; }
 div[data-testid="stVerticalBlock"]:has(#pw-marker):has(button:hover) .list-label { color: #bb38d0; }
 
-/* 🚨 3. 회원 탈퇴 버튼 (크기 및 폰트 축소) */
+/* 회원 탈퇴 버튼 (크기 및 폰트 축소) */
 div[data-testid="stElementContainer"]:has(#withdraw-marker) + div[data-testid="stElementContainer"] button {
     background-color: #ffffff !important;
     border: 1px solid #d1d5db !important;

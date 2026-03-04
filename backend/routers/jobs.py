@@ -18,7 +18,7 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 @router.post("/search", response_model=JobsSearchResponse)
 async def search_jobs(body: JobsSearchQuery):
-    # 1) 외부 API 필수 파라미터
+    # 외부 API 필수 파라미터
     params: dict[str, str | int] = {
         "authKey": settings.WORKNET_API_KEY,
         "callTp": "L",
@@ -27,7 +27,7 @@ async def search_jobs(body: JobsSearchQuery):
         "display": body.display,
     }
 
-    # 2) 선택 파라미터
+    # 선택 파라미터
     if body.empCoNo:
         params["empCoNo"] = body.empCoNo
     if body.jobsCd:
@@ -40,7 +40,7 @@ async def search_jobs(body: JobsSearchQuery):
         params["sortOrderBy"] = body.sortOrderBy
 
 
-    # 3) 다중 파라미터(list -> string)
+    # 다중 파라미터(list -> string)
     v = _join_multi(body.coClcd)
     if v:
         params["coClcd"] = v
@@ -54,7 +54,7 @@ async def search_jobs(body: JobsSearchQuery):
     if v:
         params["empWantedEduCd"] = v
 
-    # 4) 호출
+    # 호출
     if not settings.WORKNET_URL_BASE:
         raise HTTPException(status_code=500, detail="WORKNET_URL_BASE이 비어있습니다.")
 

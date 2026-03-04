@@ -126,7 +126,7 @@ hr { border-color: #e2e8f0 !important; margin: 2rem 0 !important; border-width: 
 )
 
 
-# ─── 헬퍼 함수 ───
+# 헬퍼 함수
 def extract_resume_text(uploaded_file) -> str:
     file_bytes = uploaded_file.getvalue()  # read() 대신 getvalue() 사용 권장
     try:
@@ -146,7 +146,7 @@ if "selected_resume" not in st.session_state:
     st.session_state.selected_resume = None
 
 
-# 팝업 모달: 새 이력서 등록
+# 새 이력서 등록
 @st.dialog("새 이력서 등록 및 AI 분석", width="large")
 def setup_modal():
     st.markdown(
@@ -202,7 +202,7 @@ def setup_modal():
 
 
 # 화면 UI 구현
-# ─── 상태 1: 이력서 보관함 (리스트 뷰) ───
+# 이력서 보관함 (리스트 뷰)
 if st.session_state.selected_resume is None:
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown(
@@ -224,14 +224,14 @@ if st.session_state.selected_resume is None:
 
     cols = st.columns(3, gap="medium")
 
-    # [1] 첫 번째 칸: "새 이력서 등록" 버튼 (모달 호출)
+    # "새 이력서 등록" 버튼 (모달 호출)
     with cols[0]:
         st.markdown("<div class='new-resume-card'>", unsafe_allow_html=True)
         if st.button("＋이력서 추가", use_container_width=True, key="btn_new_resume"):
             setup_modal()
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # [2] 저장된 이력서들 렌더링 (col_idx를 1부터 시작하여 밀림 방지)
+    # 저장된 이력서들 렌더링 (col_idx를 1부터 시작하여 밀림 방지)
     for i, r in enumerate(saved_resumes):
         col_idx = (i + 1) % 3
         with cols[col_idx]:
@@ -279,7 +279,7 @@ if st.session_state.selected_resume is None:
                 st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ─── 상태 2: 이력서 상세 대시보드 뷰 ───
+# 이력서 상세 대시보드 뷰
 else:
     r = st.session_state.selected_resume
     data = r.get("analysis_result", {})
@@ -306,7 +306,7 @@ else:
 
     col_l, col_r = st.columns([1, 1.2], gap="large")
 
-    # [왼쪽 열] 키워드 & 직무 매칭률
+    # 키워드 & 직무 매칭률
     with col_l:
         keywords = data.get("keywords", [])
         badges_html = "".join([f"<div class='tech-badge'>#{k}</div>" for k in keywords])
@@ -323,7 +323,7 @@ else:
             unsafe_allow_html=True,
         )
 
-    # [오른쪽 열] 예상 압박 질문 & 원본 보기
+    # 예상 압박 질문 & 원본 보기
     with col_r:
         questions = data.get("expected_questions", [])
         q_boxes_html = "".join(

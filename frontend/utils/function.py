@@ -24,7 +24,7 @@ def require_login():
     """
     cookie_manager = stx.CookieManager(key="global_auth_cookie")
 
-    # 1. 로그아웃 요청이 들어오면 제일 먼저 처리
+    # 로그아웃 요청이 들어오면 제일 먼저 처리
     if st.query_params.get("do_logout") == "1":
         try:
             cookie_manager.delete("access_token")
@@ -107,7 +107,7 @@ def inject_custom_header():
         '<a href="/admin" target="_self">🔥 관리자 대시보드</a>' if is_admin else ""
     )
 
-    # CSS + 로그아웃 버튼 숨김
+    # CSS
     st.markdown(
         """
     <style>
@@ -130,7 +130,7 @@ def inject_custom_header():
         unsafe_allow_html=True,
     )
 
-    # st.html()은 새니타이저 없이 직접 렌더링 (Streamlit 1.33+)
+ 
     st.html(
         f"""
     <style>
