@@ -22,7 +22,7 @@ env_path = os.path.join(backend_dir, ".env")
 
 load_dotenv(dotenv_path=env_path, override=True)
 
-# ─── DB 연결 설정 (.env에서 읽기) ─────────────────────────────
+# DB 연결 설정 (.env에서 읽기)
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "port": int(os.getenv("DB_PORT", "3306")),
@@ -33,7 +33,7 @@ DB_CONFIG = {
     "cursorclass": DictCursor,
 }
 
-# ─── DDL: 테이블 정의 ────────────────
+# DDL
 DDL = """
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS guestbook_memos (
 """
 
 
-# ─── 커넥션 컨텍스트 매니저 ───────────────────────────────────
+# 커넥션 컨텍스트 매니저
 @contextmanager
 def get_connection():
     env_path = os.path.join(
@@ -151,7 +151,7 @@ def get_connection():
         conn.close()
 
 
-# ─── DB 초기화 ─────────────────────────
+# DB 초기화 
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -172,7 +172,7 @@ def init_db():
                     pass
 
 
-# ─── 세션 CRUD ────────────────────────────────────
+# 세션 CRUD
 def create_session(
     user_id: int,
     job_role: str,
@@ -269,7 +269,7 @@ def get_details_by_session(session_id: int) -> list[dict]:
             return cur.fetchall()
 
 
-# ─── question_pool 헬퍼 ───────────
+# question_pool 헬퍼 
 def get_questions_by_role(
     job_role: str, difficulty: str, q_type: str = "기술", limit: int = 3
 ) -> list[dict]:
@@ -345,7 +345,7 @@ def get_questions_by_resume_keywords(
             return results
 
 
-# ─── 이력서 보관함 CRUD ─────────────────────────────────────
+# 이력서 보관함 CRUD
 def save_user_resume(
     user_id: int, title: str, job_role: str, resume_text: str, analysis_result: dict
 ) -> int:

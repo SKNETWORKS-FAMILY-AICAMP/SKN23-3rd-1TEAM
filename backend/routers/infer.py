@@ -78,7 +78,7 @@ def format_attitude_for_prompt(attitude: dict | None) -> str:
 @router.post("/ingest")
 async def ingest_resume(file: UploadFile = File(...), session_id: str = "default"):
     """이력서 PDF 수신 및 벡터 DB 학습
-    ⚠️ OpenAI 임베딩 + PDF 처리는 동기 블로킹 작업이므로
+    OpenAI 임베딩 + PDF 처리는 동기 블로킹 작업이므로
        run_in_executor로 스레드 풀에 위임 (이벤트 루프 블로킹 방지)
     """
     import os
@@ -147,17 +147,17 @@ def ask_next_question(req: Request, body: dict, db: Session = Depends(get_db)):
     job_role = body.get("job_role", "Python 개발자")
     difficulty = body.get("difficulty", "미들")
     
-    # 🔥 프론트엔드에서 계산해서 보낸 소요 시간 및 현재 질문 텍스트 파싱
+    # 프론트엔드에서 계산해서 보낸 소요 시간 및 현재 질문 텍스트 파싱
     response_time = body.get("response_time", 0)
     current_question = body.get("current_question", "자기소개")
 
-    # 1. 500개 질문 DB에서 해당 직무/난이도 질문 랜덤 추출
+    # 500개 질문 DB에서 해당 직무/난이도 질문 랜덤 추출
     question_record = db.query(base.QuestionPool).join(base.JobCategory).filter(
         base.JobCategory.target_role == job_role,
         base.QuestionPool.difficulty == difficulty
     ).order_by(func.rand()).first()
 
-    # 2. AI 서비스(RAG + GPT-4o-mini) 호출
+    # AI 서비스(RAG + GPT-4o-mini) 호출
     # 이력서 문맥과 사용자 답변을 대조하여 피드백 및 다음 질문 생성
     ai_result_raw = _get_ai().generate_interview_response(
         session_id=session_id,

@@ -22,7 +22,6 @@ load_dotenv(dotenv_path=os.path.join(_base_dir, ".env"))
 
 _api_key = os.environ.get("OPENAI_API_KEY")
 if not _api_key:
-    # 에러 대신 빈 문자열로 초기화하여 일단 앱이 켜지도록 수정
     _api_key = ""
 
 _client = OpenAI(api_key=_api_key)

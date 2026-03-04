@@ -40,7 +40,7 @@ st.set_page_config(page_title="AIWORK", page_icon="👾", layout="wide")
 user_id = require_login()
 inject_custom_header()
 
-# ─── CSS ──────────────────────────────────────────────────────
+# CSS
 st.markdown(
     """
 <style>
@@ -236,7 +236,7 @@ def delete_session_dialog(session_id):
                 )
 
 
-# ─── 상세 보기 모달 함수 ────────────────────────────────────
+# 상세 보기 모달 함수
 @st.dialog("면접 기록 상세", width="large")
 def session_detail_dialog(sid):
     st.markdown(
@@ -315,7 +315,7 @@ def session_detail_dialog(sid):
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 
-# ─── 타이틀 ───────────────────────────────────────────────────
+# 타이틀
 st.markdown(
     "<div class='hero-title'>내 <span>면접 기록</span></div>", unsafe_allow_html=True
 )
@@ -328,11 +328,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ─── 세션 상태 초기화 (삭제 잔재) ─────────────────────────────────────────
+# 세션 상태 초기화 (삭제 잔재)
 if "selected_session_id" not in st.session_state:
     st.session_state.selected_session_id = None
 
-# ─── 세션 목록 조회 ───────────────────────────────────────────
+# 세션 목록 조회
 try:
     ok, result = api_get_interview_sessions(user_id)
     if not ok:
@@ -342,7 +342,7 @@ except Exception as e:
     st.error(f"DB 연결 오류: {e}")
     st.stop()
 
-# ─── 데이터가 없을 경우 (엠프티 스테이트 렌더링) ─────────────────
+# 데이터가 없을 경우 (엠프티 스테이트 렌더링)
 if not sessions:
     st.markdown(
         """
@@ -363,7 +363,7 @@ if not sessions:
             st.switch_page("pages/interview.py")
     st.stop()
 
-# ─── 목록 헤더 ────────────────────────────────────────────────
+# 목록 헤더
 col_count, col_empty, col_new = st.columns([2, 6, 2])
 with col_count:
     st.markdown(
@@ -376,7 +376,7 @@ with col_new:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ─── 세션 카드 목록 ─────────────────────────────────────────
+# 세션 카드 목록
 with st.container(height=580, border=False):
     for s in sessions:
         if s["total_score"] is not None:
@@ -433,4 +433,3 @@ with st.container(height=580, border=False):
                     delete_session_dialog(s["id"])
 
 
-# ─── (종료) ──────────────────────────────────────────

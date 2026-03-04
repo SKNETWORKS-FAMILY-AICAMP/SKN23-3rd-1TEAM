@@ -13,20 +13,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from backend.core.config import settings  # 기존 설정 파일 유지
 
-# 1. DB 엔진 설정 (SQLite 및 MySQL/PostgreSQL 호환 로직 유지)
+# 엔진 설정
 if not settings.DATABASE_URL:
     raise ValueError("DATABASE_URL is required")
 
 connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(settings.DATABASE_URL, connect_args=connect_args, future=True)
 
-# 2. 세션 팩토리 설정
+# 세션 팩토리 설정
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
 
-# 3. 🔥 핵심 해결책: 선언적 베이스 클래스 정의 (모델들이 상속받을 대상)
+# 선언적 베이스 클래스 정의
 Base = declarative_base()
 
-# 4. Dependency Injection용 DB 세션 함수
+# Dependency Injection용 DB 세션 함수
 def get_db():
     db = SessionLocal()
     try:
